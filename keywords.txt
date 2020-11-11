@@ -1,0 +1,32 @@
+#######################################
+# Syntax Coloring Map For Battery
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Battery							KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+InstantVoltage					KEYWORD2
+AverageVoltage					KEYWORD2
+InstantCurrent					KEYWORD2
+AverageCurrent					KEYWORD2
+StateOfCharge					KEYWORD2
+AverageStateOfCharge			KEYWORD2
+InstantCapacity					KEYWORD2
+DesignCapacity					KEYWORD2
+Temperature						KEYWORD2
+TimeToEmpty						KEYWORD2
+TimeToFull						KEYWORD2
+Age								KEYWORD2
+Cycle							KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+

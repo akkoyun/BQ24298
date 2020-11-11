@@ -1,0 +1,24 @@
+{
+	"name": "Battery",
+	"version": "1.0.0",
+	"keywords": "Battery, MAX17055, Voltage, Current, Age, Cycle, BMS",
+	"description": "Battery library is an MAX17055 battery management IC control library.",
+	"authors":
+	{
+		"name": "Mehmet Gunce Akkoyun",
+		"email": "akkoyun@me.com",
+		"url": ""
+	},
+	"license": "MIT",
+	"frameworks": "arduino",
+	"platforms":
+	[
+		"atmelavr",
+		"atmelmegaavr"
+	],
+	"repository":
+	{
+		"type": "git",
+		"url": "https://github.com/akkoyun/Battery.git"
+	},
+}
