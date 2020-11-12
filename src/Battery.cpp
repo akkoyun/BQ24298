@@ -369,7 +369,7 @@ bool Battery::StateOfCharge(float &Value_) {
 		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
 		
 		// Calculate Measurement
-		Measurement_Array[Read_ID] = (float)_Register / 256;
+		Measurement_Array[Read_ID] = (float)Measurement_Raw / 256;
 
 	}
 	

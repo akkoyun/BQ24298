@@ -72,6 +72,10 @@ private:
 	const uint8_t 	ICAP_Read_Count_ 	= 10;
 	const uint8_t 	ICAP_Average_Type_ 	= 1;
 
+	// Design Capacity
+	const uint8_t 	DCAP_Read_Count_ 	= 10;
+	const uint8_t 	DCAP_Average_Type_ 	= 1;
+
 	// IC Temperature
 	const uint8_t 	Temp_Read_Count_ 	= 10;
 	const uint8_t 	Temp_Average_Type_ 	= 1;
