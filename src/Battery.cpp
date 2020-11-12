@@ -14,6 +14,130 @@
 #include "Battery.h"
 #include <Wire.h>
 
+bool Battery::Begin(int DesignCapacity_) {
+	
+	// 4000 mAh = 0xA0 - 0x0F
+	
+	// I2C Delay
+	delay(10);
+	
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0x00);
+	Wire.write(0x02);
+	Wire.write(0x00);
+	Wire.endTransmission();
+
+	// Design Capacity
+	Wire.beginTransmission(0x36);
+	Wire.write(0x18);
+	Wire.write(0x40);
+	Wire.write(0x1F);
+	Wire.endTransmission();
+
+	// Full Capacity
+	Wire.beginTransmission(0x36);
+	Wire.write(0x10);
+	Wire.write(0x40);
+	Wire.write(0x1F);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0x45);
+	Wire.write(0x17);
+	Wire.write(0x00);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0x46);
+	Wire.write(0x90);
+	Wire.write(0x01);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0x1E);
+	Wire.write(0x40);
+	Wire.write(0x06);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0x3A);
+	Wire.write(0x61);
+	Wire.write(0xA5);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0x60);
+	Wire.write(0x00);
+	Wire.write(0x00);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0xBA);
+	Wire.write(0x0C);
+	Wire.write(0x87);
+	Wire.endTransmission();
+	
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0x60);
+	Wire.write(0x00);
+	Wire.write(0x00);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0x2B);
+	Wire.write(0x70);
+	Wire.write(0x38);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0xDB);
+	Wire.write(0x20);
+	Wire.write(0x04);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0x38);
+	Wire.write(0x4E);
+	Wire.write(0x00);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0x39);
+	Wire.write(0x3E);
+	Wire.write(0x26);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0x00);
+	Wire.write(0x00);
+	Wire.write(0x00);
+	Wire.endTransmission();
+
+	// Set Reset Config
+	Wire.beginTransmission(0x36);
+	Wire.write(0xBA);
+	Wire.write(0x0C);
+	Wire.write(0x87);
+	Wire.endTransmission();
+
+	// I2C Delay
+	delay(10);
+	
+}
+
 // Measurement Functions
 bool Battery::InstantVoltage(float &Value_) {
 
@@ -58,7 +182,7 @@ bool Battery::InstantVoltage(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * 0.078125 / 1000;
@@ -126,7 +250,7 @@ bool Battery::AverageVoltage(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * 0.078125 / 1000;
@@ -194,7 +318,7 @@ bool Battery::InstantCurrent(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Declare Variables
 		bool _Signiture;
@@ -280,7 +404,7 @@ bool Battery::AverageCurrent(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Declare Variables
 		bool _Signiture;
@@ -366,7 +490,7 @@ bool Battery::StateOfCharge(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw / 256;
@@ -434,7 +558,7 @@ bool Battery::AverageStateOfCharge(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw / 256;
@@ -502,7 +626,7 @@ bool Battery::InstantCapacity(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * (5e-3) / 0.01;
@@ -570,7 +694,7 @@ bool Battery::DesignCapacity(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * (5e-3) / 0.01;
@@ -638,7 +762,7 @@ bool Battery::Temperature(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Declare Variables
 		bool _Signiture;
@@ -724,7 +848,7 @@ bool Battery::TimeToEmpty(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Data
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * 5.625 / 60 / 60;
@@ -792,7 +916,7 @@ bool Battery::TimeToFull(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Data
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * 5.625 / 60 / 60;
@@ -860,7 +984,7 @@ bool Battery::Age(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Data
 		Measurement_Array[Read_ID] = (float)Measurement_Raw / 256;
@@ -928,7 +1052,7 @@ bool Battery::Cycle(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Data
 		Measurement_Array[Read_ID] = (float)Measurement_Raw;
