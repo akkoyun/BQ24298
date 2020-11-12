@@ -953,4 +953,3 @@ bool Battery::Cycle(int &Value_) {
 	return(true);
 
 }
-
