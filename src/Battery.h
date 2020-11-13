@@ -25,19 +25,19 @@ public:
 	// ************************************************************
 
 	bool Begin(int DesignCapacity_);
-	bool InstantVoltage(float &Value_);
-	bool AverageVoltage(float &Value_);
-	bool InstantCurrent(float &Value_);
-	bool AverageCurrent(float &Value_);
-	bool StateOfCharge(float &Value_);
-	bool AverageStateOfCharge(float &Value_);
-	bool InstantCapacity(int &Value_);
-	bool DesignCapacity(int &Value_);
-	bool Temperature(float &Value_);
-	bool TimeToEmpty(int &Value_);
-	bool TimeToFull(int &Value_);
-	bool Age(int &Value_);
-	bool Cycle(int &Value_);
+	float InstantVoltage(float &Value_);
+	float AverageVoltage(float &Value_);
+	float InstantCurrent(float &Value_);
+	float AverageCurrent(float &Value_);
+	float StateOfCharge(float &Value_);
+	float AverageStateOfCharge(float &Value_);
+	int InstantCapacity(int &Value_);
+	int DesignCapacity(int &Value_);
+	float Temperature(float &Value_);
+	int TimeToEmpty(int &Value_);
+	int TimeToFull(int &Value_);
+	int Age(int &Value_);
+	int Cycle(int &Value_);
 
 private:
 
@@ -46,7 +46,7 @@ private:
 	// ************************************************************
 
 	// Instant Voltage
-	const uint8_t 	IV_Read_Count_ 		= 1;
+	const uint8_t 	IV_Read_Count_ 		= 5;
 	const uint8_t 	IV_Average_Type_ 	= 1;
 	
 	// Average Voltage
@@ -54,7 +54,7 @@ private:
 	const uint8_t 	AV_Average_Type_ 	= 1;
 	
 	// Instant Current
-	const uint8_t 	IC_Read_Count_ 		= 1;
+	const uint8_t 	IC_Read_Count_ 		= 5;
 	const uint8_t 	IC_Average_Type_ 	= 1;
 	
 	// Average Current
@@ -62,7 +62,7 @@ private:
 	const uint8_t 	AC_Average_Type_ 	= 1;
 	
 	// State of Charge
-	const uint8_t 	SOC_Read_Count_ 	= 1;
+	const uint8_t 	SOC_Read_Count_ 	= 5;
 	const uint8_t 	SOC_Average_Type_ 	= 1;
 
 	// Average State of Charge
@@ -78,7 +78,7 @@ private:
 	const uint8_t 	DCAP_Average_Type_ 	= 1;
 
 	// IC Temperature
-	const uint8_t 	Temp_Read_Count_ 	= 1;
+	const uint8_t 	Temp_Read_Count_ 	= 5;
 	const uint8_t 	Temp_Average_Type_ 	= 1;
 
 	// Time to Empty
