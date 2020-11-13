@@ -27,7 +27,7 @@ void loop() {
   Time = millis();
 
   // Measure
-  Battery.InstantVoltage(_Measurement);
+    _Measurement = Battery.InstantVoltage();
 
   // Calculate Delta Time
   int DT = millis() - Time;
