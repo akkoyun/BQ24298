@@ -15,7 +15,7 @@
 #include <Wire.h>
 
 // Configuration Functions
-bool Battery::Begin(int DesignCapacity_) {
+bool Battery::Begin(const int DesignCapacity_) {
 	
 	// 4000 mAh = 0xA0 - 0x0F
 	
@@ -86,10 +86,10 @@ bool Battery::Begin(int DesignCapacity_) {
 	//**********************************************************************
 	// Design Capacity Register (0x18)
 	//----------------------------------------------------------------------
-	// 4000 mAh --> 0xA0, 0x0F
+	// 4000 mAh --> 0x40, 0x1F
 	//**********************************************************************
 	Wire.beginTransmission(0x36);
-	Wire.write(0x18); Wire.write(0xA0); Wire.write(0x0F);
+	Wire.write(0x18); Wire.write(0x40); Wire.write(0x1F);
 	Wire.endTransmission();
 
 	//**********************************************************************

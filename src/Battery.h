@@ -24,20 +24,20 @@ public:
 	// Public Functions
 	// ************************************************************
 
-	bool Begin(int DesignCapacity_);
-	float InstantVoltage(float &Value_);
-	float AverageVoltage(float &Value_);
-	float InstantCurrent(float &Value_);
-	float AverageCurrent(float &Value_);
-	float StateOfCharge(float &Value_);
-	float AverageStateOfCharge(float &Value_);
-	int InstantCapacity(int &Value_);
-	int DesignCapacity(int &Value_);
-	float Temperature(float &Value_);
-	int TimeToEmpty(int &Value_);
-	int TimeToFull(int &Value_);
-	int Age(int &Value_);
-	int Cycle(int &Value_);
+	bool Begin(const int DesignCapacity_);
+	float InstantVoltage(void);
+	float AverageVoltage(void);
+	float InstantCurrent(void);
+	float AverageCurrent(void);
+	float StateOfCharge(void);
+	float AverageStateOfCharge(void);
+	int InstantCapacity(void);
+	int DesignCapacity(void);
+	float Temperature(void);
+	int TimeToEmpty(void);
+	int TimeToFull(void);
+	int Age(void);
+	int Cycle(void);
 
 private:
 
