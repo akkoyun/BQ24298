@@ -10,9 +10,7 @@
  *
  *********************************************************************************/
 
-#include "Arduino.h"
 #include "Battery.h"
-#include <Wire.h>
 
 // Configuration Functions
 bool Battery::Begin(const int DesignCapacity_) {

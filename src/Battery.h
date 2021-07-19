@@ -13,8 +13,15 @@
 #ifndef __Battery__
 #define __Battery__
 
+// Define Arduino Library
+#ifndef __Arduino__
 #include <Arduino.h>
+#endif
+
+// Define Wire Library
+#ifndef __Wire__
 #include <Wire.h>
+#endif
 
 class Battery
 {
