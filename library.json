@@ -1,6 +1,6 @@
 {
 	"name": "Battery",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"keywords": "Battery, MAX17055, Voltage, Current, Age, Cycle, BMS",
 	"description": "Battery library is an MAX17055 battery management IC control library.",
 	"authors":
