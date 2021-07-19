@@ -14,8 +14,148 @@
 #include "Battery.h"
 #include <Wire.h>
 
+// Configuration Functions
+bool Battery::Begin(const int DesignCapacity_) {
+	
+	// 4000 mAh = 0xA0 - 0x0F
+	
+	// I2C Delay
+	delay(5);
+	
+	// Set Res
+	
+	//**********************************************************************
+	// Status Register (0x00)
+	//----------------------------------------------------------------------
+	// 15-14-13-12-11-10-09-08-07-06-05-04-03-02-01-00
+	//  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0	--> 0x02, 0x00
+	//----------------------------------------------------------------------
+	// Bit-00	- X			: -
+	// Bit-01	- POR		: Power-On Reset
+	// Bit-02	- Imn		: Minimum Current Alert Threshold Exceeded
+	// Bit-03	- Bst		: Battery Status
+	// Bit-04	- X			: -
+	// Bit-05	- X			: -
+	// Bit-06	- Imx		: Maximum Current Alert Threshold Exceeded
+	// Bit-07	- dSOCi		: State of Charge 1% Change Alert
+	// Bit-08	- Vmn		: Minimum Voltage Alert Threshold Exceeded
+	// Bit-09	- Tmn		: Minimum Temperature Alert Threshold Exceeded
+	// Bit-10	- Smn		: Minimum SOC Alert Threshold Exceeded
+	// Bit-11	- Bi		: Battery Insertion
+	// Bit-12	- Vmx		: Maximum Voltage Alert Threshold Exceeded
+	// Bit-13	- Tmx		: Maximum Temperature Alert Threshold Exceeded
+	// Bit-14	- Smx		: Maximum SOC Alert Threshold Exceeded
+	// Bit-15	- Br		: Battery Removal
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0x00); Wire.write(0x02); Wire.write(0x00);
+	Wire.endTransmission();
+
+	//**********************************************************************
+	// Read HibCFG (0xBA)
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0xBA);
+	Wire.requestFrom(0x36, 1);
+	uint8_t HibCFG = Wire.read();
+	
+	//**********************************************************************
+	// Exit Hibernate Mode Step-1
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0x60);
+	Wire.write(0x90);
+	Wire.endTransmission();
+
+	//**********************************************************************
+	// Exit Hibernate Mode Step-2
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0xBA);
+	Wire.write(0x00);
+	Wire.endTransmission();
+
+	//**********************************************************************
+	// Exit Hibernate Mode Step-3
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0x60);
+	Wire.write(0x00);
+	Wire.endTransmission();
+	
+	//**********************************************************************
+	// Design Capacity Register (0x18)
+	//----------------------------------------------------------------------
+	// 4000 mAh --> 0x40, 0x1F
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0x18); Wire.write(0x40); Wire.write(0x1F);
+	Wire.endTransmission();
+
+	//**********************************************************************
+	// dQAcc Register (0x45)
+	//----------------------------------------------------------------------
+	// dQAcc = DesignCap / 32 : 125 --> 0x7D, 0x00
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0x45); Wire.write(0x7D); Wire.write(0x00);
+	Wire.endTransmission();
+
+	//**********************************************************************
+	// IChgTerm Register (0x1E)
+	//----------------------------------------------------------------------
+	// 100 mA --> 0x58, 0x02
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0x1E); Wire.write(0x58); Wire.write(0x02);
+	Wire.endTransmission();
+
+	//**********************************************************************
+	// VEmpty Register (0x3A)
+	//----------------------------------------------------------------------
+	// 3V3 --> 0x61, 0xA5
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0x3A); Wire.write(0x61); Wire.write(0xA5);
+	Wire.endTransmission();
+
+	//**********************************************************************
+	// dPAcc Register (0x46)
+	//----------------------------------------------------------------------
+	// dPAcc = dQAcc * 51200 / DesignCap : 1600 --> 0x40, 0x06
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0x46); Wire.write(0x40); Wire.write(0x06);
+	Wire.endTransmission();
+
+	//**********************************************************************
+	// ModelCfg Register (0xDB)
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0xDB); Wire.write(0x20); Wire.write(0x04);
+	Wire.endTransmission();
+
+	//**********************************************************************
+	// Write HibCFG (0xBA)
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0xBA);
+	Wire.write(HibCFG);
+
+	//**********************************************************************
+	// Status Register (0x00)
+	//**********************************************************************
+	Wire.beginTransmission(0x36);
+	Wire.write(0x00); Wire.write(0x00); Wire.write(0x00);
+	Wire.endTransmission();
+	
+	// I2C Delay
+	delay(5);
+	
+}
+
 // Measurement Functions
-bool Battery::InstantVoltage(float &Value_) {
+float Battery::InstantVoltage(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Instant Voltage Read Function
@@ -25,6 +165,9 @@ bool Battery::InstantVoltage(float &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[IV_Read_Count_];
+
+	// Define Output Variable
+	float Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < IV_Read_Count_; Read_ID++) {
@@ -37,16 +180,8 @@ bool Battery::InstantVoltage(float &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
-		
+		if (MAX17055_Read != 0) return(-101);
+
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
 		
@@ -58,7 +193,7 @@ bool Battery::InstantVoltage(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * 0.078125 / 1000;
@@ -80,10 +215,10 @@ bool Battery::InstantVoltage(float &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::AverageVoltage(float &Value_) {
+float Battery::AverageVoltage(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Average Voltage Read Function
@@ -93,6 +228,9 @@ bool Battery::AverageVoltage(float &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[AV_Read_Count_];
+
+	// Define Output Variable
+	float Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < AV_Read_Count_; Read_ID++) {
@@ -105,15 +243,7 @@ bool Battery::AverageVoltage(float &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
+		if (MAX17055_Read != 0) return(-101);
 		
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
@@ -126,7 +256,7 @@ bool Battery::AverageVoltage(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * 0.078125 / 1000;
@@ -148,10 +278,10 @@ bool Battery::AverageVoltage(float &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::InstantCurrent(float &Value_) {
+float Battery::InstantCurrent(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Instant Current Read Function
@@ -161,6 +291,9 @@ bool Battery::InstantCurrent(float &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[IC_Read_Count_];
+
+	// Define Output Variable
+	float Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < IC_Read_Count_; Read_ID++) {
@@ -173,15 +306,7 @@ bool Battery::InstantCurrent(float &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
+		if (MAX17055_Read != 0) return(-101);
 		
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
@@ -194,7 +319,7 @@ bool Battery::InstantCurrent(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Declare Variables
 		bool _Signiture;
@@ -234,10 +359,10 @@ bool Battery::InstantCurrent(float &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::AverageCurrent(float &Value_) {
+float Battery::AverageCurrent(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Average Current Read Function
@@ -247,6 +372,9 @@ bool Battery::AverageCurrent(float &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[AC_Read_Count_];
+
+	// Define Output Variable
+	float Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < AC_Read_Count_; Read_ID++) {
@@ -259,16 +387,8 @@ bool Battery::AverageCurrent(float &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
-		
+		if (MAX17055_Read != 0) return(-101);
+
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
 		
@@ -280,7 +400,7 @@ bool Battery::AverageCurrent(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Declare Variables
 		bool _Signiture;
@@ -320,10 +440,10 @@ bool Battery::AverageCurrent(float &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::StateOfCharge(float &Value_) {
+float Battery::StateOfCharge(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 State of Charge Read Function
@@ -333,6 +453,9 @@ bool Battery::StateOfCharge(float &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[SOC_Read_Count_];
+
+	// Define Output Variable
+	float Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < SOC_Read_Count_; Read_ID++) {
@@ -345,16 +468,8 @@ bool Battery::StateOfCharge(float &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
-		
+		if (MAX17055_Read != 0) return(-101);
+
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
 		
@@ -366,7 +481,7 @@ bool Battery::StateOfCharge(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw / 256;
@@ -388,10 +503,10 @@ bool Battery::StateOfCharge(float &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::AverageStateOfCharge(float &Value_) {
+float Battery::AverageStateOfCharge(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Average State of Charge Read Function
@@ -401,6 +516,9 @@ bool Battery::AverageStateOfCharge(float &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[ASOC_Read_Count_];
+
+	// Define Output Variable
+	float Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < ASOC_Read_Count_; Read_ID++) {
@@ -413,16 +531,8 @@ bool Battery::AverageStateOfCharge(float &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
-		
+		if (MAX17055_Read != 0) return(-101);
+
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
 		
@@ -434,7 +544,7 @@ bool Battery::AverageStateOfCharge(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw / 256;
@@ -456,10 +566,10 @@ bool Battery::AverageStateOfCharge(float &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::InstantCapacity(int &Value_) {
+int Battery::InstantCapacity(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Instant Capacity Read Function
@@ -469,6 +579,9 @@ bool Battery::InstantCapacity(int &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[ICAP_Read_Count_];
+
+	// Define Output Variable
+	int Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < ICAP_Read_Count_; Read_ID++) {
@@ -481,16 +594,8 @@ bool Battery::InstantCapacity(int &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
-		
+		if (MAX17055_Read != 0) return(-101);
+
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
 		
@@ -502,7 +607,7 @@ bool Battery::InstantCapacity(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * (5e-3) / 0.01;
@@ -524,10 +629,10 @@ bool Battery::InstantCapacity(int &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::DesignCapacity(int &Value_) {
+int Battery::DesignCapacity(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Design Capacity Read Function
@@ -537,6 +642,9 @@ bool Battery::DesignCapacity(int &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[DCAP_Read_Count_];
+
+	// Define Output Variable
+	int Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < DCAP_Read_Count_; Read_ID++) {
@@ -549,16 +657,8 @@ bool Battery::DesignCapacity(int &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
-		
+		if (MAX17055_Read != 0) return(-101);
+
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
 		
@@ -570,7 +670,7 @@ bool Battery::DesignCapacity(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Measurement
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * (5e-3) / 0.01;
@@ -592,10 +692,10 @@ bool Battery::DesignCapacity(int &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::Temperature(float &Value_) {
+float Battery::Temperature(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 IC Temperature Read Function
@@ -605,6 +705,9 @@ bool Battery::Temperature(float &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[Temp_Read_Count_];
+
+	// Define Output Variable
+	float Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < Temp_Read_Count_; Read_ID++) {
@@ -617,16 +720,8 @@ bool Battery::Temperature(float &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
-		
+		if (MAX17055_Read != 0) return(-101);
+
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
 		
@@ -638,7 +733,7 @@ bool Battery::Temperature(float &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Declare Variables
 		bool _Signiture;
@@ -678,10 +773,10 @@ bool Battery::Temperature(float &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::TimeToEmpty(int &Value_) {
+int Battery::TimeToEmpty(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Time to Empty Read Function
@@ -691,6 +786,9 @@ bool Battery::TimeToEmpty(int &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[TTE_Read_Count_];
+
+	// Define Output Variable
+	int Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < TTE_Read_Count_; Read_ID++) {
@@ -703,16 +801,8 @@ bool Battery::TimeToEmpty(int &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
-		
+		if (MAX17055_Read != 0) return(-101);
+
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
 		
@@ -724,7 +814,7 @@ bool Battery::TimeToEmpty(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Data
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * 5.625 / 60 / 60;
@@ -746,10 +836,10 @@ bool Battery::TimeToEmpty(int &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::TimeToFull(int &Value_) {
+int Battery::TimeToFull(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Time to Full Read Function
@@ -759,6 +849,9 @@ bool Battery::TimeToFull(int &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[TTF_Read_Count_];
+
+	// Define Output Variable
+	int Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < TTF_Read_Count_; Read_ID++) {
@@ -771,16 +864,8 @@ bool Battery::TimeToFull(int &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
-		
+		if (MAX17055_Read != 0) return(-101);
+
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
 		
@@ -792,7 +877,7 @@ bool Battery::TimeToFull(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Data
 		Measurement_Array[Read_ID] = (float)Measurement_Raw * 5.625 / 60 / 60;
@@ -814,10 +899,10 @@ bool Battery::TimeToFull(int &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::Age(int &Value_) {
+int Battery::Age(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Age Read Function
@@ -827,6 +912,9 @@ bool Battery::Age(int &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[AGE_Read_Count_];
+
+	// Define Output Variable
+	int Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < AGE_Read_Count_; Read_ID++) {
@@ -839,16 +927,8 @@ bool Battery::Age(int &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
-		
+		if (MAX17055_Read != 0) return(-101);
+
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
 		
@@ -860,7 +940,7 @@ bool Battery::Age(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Data
 		Measurement_Array[Read_ID] = (float)Measurement_Raw / 256;
@@ -882,10 +962,10 @@ bool Battery::Age(int &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
-bool Battery::Cycle(int &Value_) {
+int Battery::Cycle(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Cycle Read Function
@@ -895,6 +975,9 @@ bool Battery::Cycle(int &Value_) {
 
 	// Define Measurement Read Array
 	float Measurement_Array[CYC_Read_Count_];
+	
+	// Define Output Variable
+	int Value_;
 
 	// Read Loop For Read Count
 	for (uint8_t Read_ID = 0; Read_ID < CYC_Read_Count_; Read_ID++) {
@@ -907,16 +990,8 @@ bool Battery::Cycle(int &Value_) {
 		int MAX17055_Read = Wire.endTransmission(false);
 		
 		// Control For Read Success
-		if (MAX17055_Read != 0) {
-			
-			// Set Error Code
-			Value_ = -101;
-			
-			// End Function
-			return(false);
-			
-		}
-		
+		if (MAX17055_Read != 0) return(-101);
+
 		// Read Data Command to MAX17055
 		Wire.requestFrom(0b00110110, 2); // 0x36
 		
@@ -928,7 +1003,7 @@ bool Battery::Cycle(int &Value_) {
 		MAX17055_Data[1] = Wire.read(); // MSB
 		
 		// Combine Read Bytes
-		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[0] << 8) | (uint16_t)MAX17055_Data[1];
+		uint16_t Measurement_Raw = ((uint16_t)MAX17055_Data[1] << 8) | (uint16_t)MAX17055_Data[0];
 		
 		// Calculate Data
 		Measurement_Array[Read_ID] = (float)Measurement_Raw;
@@ -950,6 +1025,8 @@ bool Battery::Cycle(int &Value_) {
 	}	// Standart Average
 
 	// End Function
-	return(true);
+	return(Value_);
 
 }
+
+Battery Gauge;

@@ -19,24 +19,31 @@
 class Battery
 {
 public:
+
+	// ************************************************************
+	// Public Variables
+	// ************************************************************
+
+	String Firmware 					= "01.00.02";
 	
 	// ************************************************************
 	// Public Functions
 	// ************************************************************
 
-	bool InstantVoltage(float &Value_);
-	bool AverageVoltage(float &Value_);
-	bool InstantCurrent(float &Value_);
-	bool AverageCurrent(float &Value_);
-	bool StateOfCharge(float &Value_);
-	bool AverageStateOfCharge(float &Value_);
-	bool InstantCapacity(int &Value_);
-	bool DesignCapacity(int &Value_);
-	bool Temperature(float &Value_);
-	bool TimeToEmpty(int &Value_);
-	bool TimeToFull(int &Value_);
-	bool Age(int &Value_);
-	bool Cycle(int &Value_);
+	bool Begin(const int DesignCapacity_);
+	float InstantVoltage(void);
+	float AverageVoltage(void);
+	float InstantCurrent(void);
+	float AverageCurrent(void);
+	float StateOfCharge(void);
+	float AverageStateOfCharge(void);
+	int InstantCapacity(void);
+	int DesignCapacity(void);
+	float Temperature(void);
+	int TimeToEmpty(void);
+	int TimeToFull(void);
+	int Age(void);
+	int Cycle(void);
 
 private:
 
@@ -45,57 +52,59 @@ private:
 	// ************************************************************
 
 	// Instant Voltage
-	const uint8_t 	IV_Read_Count_ 		= 10;
+	const uint8_t 	IV_Read_Count_ 		= 5;
 	const uint8_t 	IV_Average_Type_ 	= 1;
 	
 	// Average Voltage
-	const uint8_t 	AV_Read_Count_ 		= 10;
+	const uint8_t 	AV_Read_Count_ 		= 1;
 	const uint8_t 	AV_Average_Type_ 	= 1;
 	
 	// Instant Current
-	const uint8_t 	IC_Read_Count_ 		= 10;
+	const uint8_t 	IC_Read_Count_ 		= 5;
 	const uint8_t 	IC_Average_Type_ 	= 1;
 	
 	// Average Current
-	const uint8_t 	AC_Read_Count_ 		= 10;
+	const uint8_t 	AC_Read_Count_ 		= 1;
 	const uint8_t 	AC_Average_Type_ 	= 1;
 	
 	// State of Charge
-	const uint8_t 	SOC_Read_Count_ 	= 10;
+	const uint8_t 	SOC_Read_Count_ 	= 5;
 	const uint8_t 	SOC_Average_Type_ 	= 1;
 
 	// Average State of Charge
-	const uint8_t 	ASOC_Read_Count_ 	= 10;
+	const uint8_t 	ASOC_Read_Count_ 	= 1;
 	const uint8_t 	ASOC_Average_Type_ 	= 1;
 
 	// Instant Capacity
-	const uint8_t 	ICAP_Read_Count_ 	= 10;
+	const uint8_t 	ICAP_Read_Count_ 	= 1;
 	const uint8_t 	ICAP_Average_Type_ 	= 1;
 
 	// Design Capacity
-	const uint8_t 	DCAP_Read_Count_ 	= 10;
+	const uint8_t 	DCAP_Read_Count_ 	= 1;
 	const uint8_t 	DCAP_Average_Type_ 	= 1;
 
 	// IC Temperature
-	const uint8_t 	Temp_Read_Count_ 	= 10;
+	const uint8_t 	Temp_Read_Count_ 	= 5;
 	const uint8_t 	Temp_Average_Type_ 	= 1;
 
 	// Time to Empty
-	const uint8_t 	TTE_Read_Count_ 	= 10;
+	const uint8_t 	TTE_Read_Count_ 	= 1;
 	const uint8_t 	TTE_Average_Type_ 	= 1;
 
 	// Time to Full
-	const uint8_t 	TTF_Read_Count_ 	= 10;
+	const uint8_t 	TTF_Read_Count_ 	= 1;
 	const uint8_t 	TTF_Average_Type_ 	= 1;
 
 	// Age
-	const uint8_t 	AGE_Read_Count_ 	= 10;
+	const uint8_t 	AGE_Read_Count_ 	= 1;
 	const uint8_t 	AGE_Average_Type_ 	= 1;
 
 	// Cycle
-	const uint8_t 	CYC_Read_Count_ 	= 10;
+	const uint8_t 	CYC_Read_Count_ 	= 1;
 	const uint8_t 	CYC_Average_Type_ 	= 1;
 
 };
+
+extern Battery Gauge;
 
 #endif /* defined(__Battery__) */
