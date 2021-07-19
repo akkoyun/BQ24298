@@ -1,8 +1,5 @@
 #include "Battery.h"
 
-// Define Library
-Battery Battery;
-
 void setup() {
   
   // Serial Communication Start
@@ -27,7 +24,7 @@ void loop() {
   Time = millis();
 
   // Measure
-    _Measurement = Battery.InstantVoltage();
+_Measurement = Gauge.InstantVoltage();
 
   // Calculate Delta Time
   int DT = millis() - Time;
