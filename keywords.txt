@@ -1,12 +1,12 @@
 #######################################
-# Syntax Coloring Map For Battery
+# Syntax Coloring Map For BQ24298
 #######################################
 
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
 
-Battery							KEYWORD1
+BQ24298							KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
