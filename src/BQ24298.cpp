@@ -10,10 +10,10 @@
  *
  *********************************************************************************/
 
-#include "Battery.h"
+#include "MAX17055.h"
 
 // Configuration Functions
-bool Battery::Begin(const int DesignCapacity_) {
+bool MAX17055::Begin(const int DesignCapacity_) {
 	
 	// 4000 mAh = 0xA0 - 0x0F
 	
@@ -153,7 +153,7 @@ bool Battery::Begin(const int DesignCapacity_) {
 }
 
 // Measurement Functions
-float Battery::InstantVoltage(void) {
+float MAX17055::InstantVoltage(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Instant Voltage Read Function
@@ -216,7 +216,7 @@ float Battery::InstantVoltage(void) {
 	return(Value_);
 
 }
-float Battery::AverageVoltage(void) {
+float MAX17055::AverageVoltage(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Average Voltage Read Function
@@ -279,7 +279,7 @@ float Battery::AverageVoltage(void) {
 	return(Value_);
 
 }
-float Battery::InstantCurrent(void) {
+float MAX17055::InstantCurrent(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Instant Current Read Function
@@ -360,7 +360,7 @@ float Battery::InstantCurrent(void) {
 	return(Value_);
 
 }
-float Battery::AverageCurrent(void) {
+float MAX17055::AverageCurrent(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Average Current Read Function
@@ -441,7 +441,7 @@ float Battery::AverageCurrent(void) {
 	return(Value_);
 
 }
-float Battery::StateOfCharge(void) {
+float MAX17055::StateOfCharge(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 State of Charge Read Function
@@ -504,7 +504,7 @@ float Battery::StateOfCharge(void) {
 	return(Value_);
 
 }
-float Battery::AverageStateOfCharge(void) {
+float MAX17055::AverageStateOfCharge(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Average State of Charge Read Function
@@ -567,7 +567,7 @@ float Battery::AverageStateOfCharge(void) {
 	return(Value_);
 
 }
-int Battery::InstantCapacity(void) {
+int MAX17055::InstantCapacity(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Instant Capacity Read Function
@@ -630,7 +630,7 @@ int Battery::InstantCapacity(void) {
 	return(Value_);
 
 }
-int Battery::DesignCapacity(void) {
+int MAX17055::DesignCapacity(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Design Capacity Read Function
@@ -693,7 +693,7 @@ int Battery::DesignCapacity(void) {
 	return(Value_);
 
 }
-float Battery::Temperature(void) {
+float MAX17055::Temperature(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 IC Temperature Read Function
@@ -774,7 +774,7 @@ float Battery::Temperature(void) {
 	return(Value_);
 
 }
-int Battery::TimeToEmpty(void) {
+int MAX17055::TimeToEmpty(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Time to Empty Read Function
@@ -837,7 +837,7 @@ int Battery::TimeToEmpty(void) {
 	return(Value_);
 
 }
-int Battery::TimeToFull(void) {
+int MAX17055::TimeToFull(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Time to Full Read Function
@@ -900,7 +900,7 @@ int Battery::TimeToFull(void) {
 	return(Value_);
 
 }
-int Battery::Age(void) {
+int MAX17055::Age(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Age Read Function
@@ -963,7 +963,7 @@ int Battery::Age(void) {
 	return(Value_);
 
 }
-int Battery::Cycle(void) {
+int MAX17055::Cycle(void) {
 
 	/******************************************************************************
 	 *	Project		: MAX17055 Cycle Read Function
@@ -1027,4 +1027,4 @@ int Battery::Cycle(void) {
 
 }
 
-Battery Gauge;
+MAX17055 Gauge;

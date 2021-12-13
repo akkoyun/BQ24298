@@ -10,8 +10,8 @@
  *
  *********************************************************************************/
 
-#ifndef __Battery__
-#define __Battery__
+#ifndef __MAX17055__
+#define __MAX17055__
 
 // Define Arduino Library
 #ifndef __Arduino__
@@ -23,7 +23,7 @@
 #include <Wire.h>
 #endif
 
-class Battery
+class MAX17055
 {
 public:
 
@@ -112,6 +112,6 @@ private:
 
 };
 
-extern Battery Gauge;
+extern MAX17055 Gauge;
 
-#endif /* defined(__Battery__) */
+#endif /* defined(__MAX17055__) */
