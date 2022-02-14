@@ -1,18 +1,29 @@
-language: python
-
+language: c
+sudo: false
 cache:
   directories:
-  - "~/.platformio"
+    - ~/arduino_ide
+    - ~/.arduino15/packages/
+git:
+  depth: false
+  quiet: true
+addons:
+  apt:
+    sources:
+      - llvm-toolchain-trusty-5.0
+      - key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
+    packages:
+      - python3-pip
+      - python3-wheel
+env:
+  global:
+     - PRETTYNAME="BQ24298 Battery Charger"
+
+before_install:
+   - source <(curl -SLs https://raw.githubusercontent.com/akkoyun/BQ24298/master/install.sh)
 
 install:
-- pip install -U platformio
-- platformio lib install 986 # LSM303
-
-env:
-- BOARD=uno
-- BOARD=megaatmega2560
+   - arduino --install-library "I2C_Functions"
 
 script:
-- for e in examples/*; do
-    platformio ci --board=$BOARD --lib=. $e/*;
-  done
+   - build_main_platforms
