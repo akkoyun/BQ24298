@@ -1,6 +1,6 @@
 {
 	"name": "BQ24298",
-	"version": "1.0.3",
+	"version": "2.0.0",
 	"keywords": "Battery, MAX17055, Voltage, Current, Age, Cycle, BMS",
 	"description": "Battery library is an MAX17055 battery management IC control library.",
 	"authors":

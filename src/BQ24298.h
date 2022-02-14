@@ -5,9 +5,6 @@
  *
  *	Library				: Battery Charger Library
  *	Code Developer		: Mehmet Gunce Akkoyun (akkoyun@me.com)
- *	Revision			: 1.0.0
- *	Relase				: 21.11.2021
- *
  *********************************************************************************/
 
 #ifndef __BQ24298__
@@ -18,65 +15,89 @@
 #include <Arduino.h>
 #endif
 
-// Define Wire Library
-#ifndef __Wire__
-#include <Wire.h>
+// Define Library Structures
+#ifndef __BQ24298_CONFIG__
+#include <Config.h>
 #endif
 
-class BQ24298
-{
-public:
+class BQ24298 {
 
-	// ************************************************************
-	// Public Variables
-	// ************************************************************
+	public:
 
-	String Firmware 					= "01.00.00";
-	
-	uint8_t	REG00						= 0x00;
-	uint8_t	REG01						= 0x00;
-	uint8_t	REG02						= 0x00;
-	uint8_t	REG03						= 0x00;
-	uint8_t	REG04						= 0x00;
-	uint8_t	REG05						= 0x00;
-	uint8_t	REG06						= 0x00;
-	uint8_t	REG07						= 0x00;
-	uint8_t	REG08						= 0x00;
-	uint8_t	REG09						= 0x00;
-	uint8_t	REG0A						= 0x00;
+		// ************************************************************
+		// Public Variables
+		// ************************************************************
 
-	uint8_t	REG00_Default				= 0x7F;	// 0x37
-	uint8_t	REG01_Default				= 0x1A;	// 0x1B [1A]
-	uint8_t	REG02_Default				= 0x90;	// 0x60
-	uint8_t	REG03_Default				= 0x11;	// 0x11
-	uint8_t	REG04_Default				= 0xB2;	// 0xB2
-	uint8_t	REG05_Default				= 0xC6;	// 0xDC [06]
-	uint8_t	REG06_Default				= 0x73;	// 0x73
-	uint8_t	REG07_Default				= 0x4B;	// 0x4B
+		// ************************************************************
+		// Public Functions
+		// ************************************************************
 
-	// ************************************************************
-	// Public Functions
-	// ************************************************************
-	
-	uint8_t 	Read_Register(uint8_t _Register);
-	void 		Read_Registers(void);
-	void 		Set_Registers(void);
+		bool 		begin(void);
+		bool 		Set_Charge_Current(float current);
+		bool 		Enable_Charge(void);
+		bool 		Disable_Charge(void);
+		bool 		Enable_BATFET(void);
+		bool 		Enable_Boost_Mode(void);
+		bool 		Disable_Boost_Mode(void);
+		bool 		Set_Input_Voltage_Limit(float voltage);
+		float 		Get_Input_Voltage_Limit(void);
+		bool 		Set_Input_Current_Limit(float _Input_Current);
+		float 		Get_Input_Current_Limit(void);
+		uint8_t 	Read_Input_Source_Register(void);
+		bool 		Enable_Buck(void);
+		bool 		Disable_Buck(void);
+		uint8_t 	Read_Power_ON_Register(void);
+		bool 		Enable_Charging(void);
+		bool 		Disable_Charging(void);
+		bool 		Disable_OTG(void);
+		bool 		Enable_OTG(void);
+		bool 		Reset_Watchdog(void);
+		bool 		Set_Minimum_System_Voltage(float voltage);
+		float 		Get_Minimum_System_Voltage(void);
+		bool 		Set_Charge_Current(float current);
+		float 		Get_Charge_Current(void);
+		bool 		Set_PreCharge_Current(float current);
+		float 		Get_PreCharge_Current(void);
+		bool 		Set_TermCharge_Current(float current);
+		float 		Get_TermCharge_Current(void);
+		bool 		Set_Charge_Voltage(float voltage);
+		float 		Get_Charge_Voltage(void);
+		uint8_t 	Read_ChargeTerm_Register(void);
+		bool 		Disable_Watchdog(void);
+		bool 		Set_Thermal_Regulation_Temperature(uint8_t degree);
+		int 		Get_Thermal_Regulation_Temperature(void);
+		bool 		Disable_DPDM(void);
+		bool 		Enable_DPDM(void);
+		bool 		Enable_BATFET(void);
+		bool 		Disable_BATFET(void);
+		bool 		Enable_ChargeFault_INT(void);
+		bool 		Disable_ChargeFault_INT(void);
+		bool 		Enable_BatFault_INT(void);
+		bool 		Disable_BatFault_INT(void);
+		uint8_t 	Read_OpControl_Register(void);
+		int 		USBmode(void);
+		int 		Charge_Status(void);
+		bool 		is_Power_Good(void);
+		bool 		is_Hot(void);
+		bool 		Can_Run_On_Battery(void);
+		bool 		is_Batt_Connected(void);
+		uint8_t 	Read_System_Status_Register(void);
+		uint8_t 	Read_Fault_Register(void);
+		uint8_t		Get_Charge_Fault(void);
+		uint8_t		Has_Battery_Temperature_Fault(void);
+		bool 		is_Watchdog_Expired(void);
+		bool 		is_Battery_In_Over_Voltage(void);
+		uint8_t 	Get_Version(void);
 
-	// I2C Functions
-	uint8_t		Register_Read(uint8_t _Register);
-	bool 		Register_Write(uint8_t _Register, uint8_t _Value);
+	private:
 
-private:
+		// ************************************************************
+		// Private Variables
+		// ************************************************************
 
-	// ************************************************************
-	// Private Variables
-	// ************************************************************
-	
-
-	// ************************************************************
-	// Private Functions
-	// ************************************************************
-
+		// ************************************************************
+		// Private Functions
+		// ************************************************************
 
 };
 
