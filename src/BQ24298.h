@@ -33,13 +33,12 @@ class BQ24298 {
 		// ************************************************************
 
 		bool 		begin(void);
-		bool 		Set_Charge_Current(float current);
+		bool 		Set_Charge_Current(float _Charge_Current);
 		bool 		Enable_Charge(void);
 		bool 		Disable_Charge(void);
-		bool 		Enable_BATFET(void);
 		bool 		Enable_Boost_Mode(void);
 		bool 		Disable_Boost_Mode(void);
-		bool 		Set_Input_Voltage_Limit(float voltage);
+		bool 		Set_Input_Voltage_Limit(float _Input_Voltage);
 		float 		Get_Input_Voltage_Limit(void);
 		bool 		Set_Input_Current_Limit(float _Input_Current);
 		float 		Get_Input_Current_Limit(void);
@@ -52,19 +51,18 @@ class BQ24298 {
 		bool 		Disable_OTG(void);
 		bool 		Enable_OTG(void);
 		bool 		Reset_Watchdog(void);
-		bool 		Set_Minimum_System_Voltage(float voltage);
+		bool 		Set_Minimum_System_Voltage(float _Minimum_Voltage);
 		float 		Get_Minimum_System_Voltage(void);
-		bool 		Set_Charge_Current(float current);
 		float 		Get_Charge_Current(void);
-		bool 		Set_PreCharge_Current(float current);
+		bool 		Set_PreCharge_Current(float _PreCharge_Current);
 		float 		Get_PreCharge_Current(void);
-		bool 		Set_TermCharge_Current(float current);
+		bool 		Set_TermCharge_Current(float _Term_Charge_Current);
 		float 		Get_TermCharge_Current(void);
-		bool 		Set_Charge_Voltage(float voltage);
+		bool 		Set_Charge_Voltage(float _Charge_Voltage);
 		float 		Get_Charge_Voltage(void);
 		uint8_t 	Read_ChargeTerm_Register(void);
 		bool 		Disable_Watchdog(void);
-		bool 		Set_Thermal_Regulation_Temperature(uint8_t degree);
+		bool 		Set_Thermal_Regulation_Temperature(uint8_t _Temperature);
 		int 		Get_Thermal_Regulation_Temperature(void);
 		bool 		Disable_DPDM(void);
 		bool 		Enable_DPDM(void);
