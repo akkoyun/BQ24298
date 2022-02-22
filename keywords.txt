@@ -6,25 +6,65 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-BQ24298							KEYWORD1
+Charger							KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-InstantVoltage					KEYWORD2
-AverageVoltage					KEYWORD2
-InstantCurrent					KEYWORD2
-AverageCurrent					KEYWORD2
-StateOfCharge					KEYWORD2
-AverageStateOfCharge			KEYWORD2
-InstantCapacity					KEYWORD2
-DesignCapacity					KEYWORD2
-Temperature						KEYWORD2
-TimeToEmpty						KEYWORD2
-TimeToFull						KEYWORD2
-Age								KEYWORD2
-Cycle							KEYWORD2
+Begin                           KEYWORD2
+Set_Charge_Current              KEYWORD2
+Enable_Charge                   KEYWORD2
+Disable_Charge                  KEYWORD2
+Enable_Boost_Mode               KEYWORD2
+Disable_Boost_Mode              KEYWORD2
+Set_Input_Voltage_Limit         KEYWORD2
+Get_Input_Voltage_Limit         KEYWORD2
+Set_Input_Current_Limit         KEYWORD2
+Get_Input_Current_Limit         KEYWORD2
+Read_Input_Source_Register      KEYWORD2
+Enable_Buck                     KEYWORD2
+Disable_Buck                    KEYWORD2
+Read_Power_ON_Register          KEYWORD2
+Enable_Charging                 KEYWORD2
+Disable_Charging                KEYWORD2
+Disable_OTG                     KEYWORD2
+Enable_OTG                      KEYWORD2
+Reset_Watchdog                  KEYWORD2
+Set_Minimum_System_Voltage      KEYWORD2
+Get_Minimum_System_Voltage      KEYWORD2
+Get_Charge_Current              KEYWORD2
+Set_PreCharge_Current           KEYWORD2
+Get_PreCharge_Current           KEYWORD2
+Set_TermCharge_Current          KEYWORD2
+Get_TermCharge_Current          KEYWORD2
+Set_Charge_Voltage              KEYWORD2
+Get_Charge_Voltage              KEYWORD2           
+Read_ChargeTerm_Register        KEYWORD2
+Disable_Watchdog                KEYWORD2
+Set_Thermal_Regulation_Temperature  KEYWORD2
+Get_Thermal_Regulation_Temperature  KEYWORD2
+Disable_DPDM                    KEYWORD2
+Enable_DPDM                     KEYWORD2
+BATFET_Disable_Bit              KEYWORD2
+Enable_ChargeFault_INT          KEYWORD2
+Disable_ChargeFault_INT         KEYWORD2
+Enable_BatFault_INT             KEYWORD2
+Disable_BatFault_INT            KEYWORD2
+Read_OpControl_Register         KEYWORD2
+USBmode                         KEYWORD2
+Charge_Status                   KEYWORD2
+is_Power_Good                   KEYWORD2
+is_Hot                          KEYWORD2
+Can_Run_On_Battery              KEYWORD2
+is_Batt_Connected               KEYWORD2
+Read_System_Status_Register     KEYWORD2
+Read_Fault_Register             KEYWORD2
+Get_Charge_Fault                KEYWORD2
+Has_Battery_Temperature_Fault   KEYWORD2
+is_Watchdog_Expired             KEYWORD2
+is_Battery_In_Over_Voltage      KEYWORD2
+Get_Version                     KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

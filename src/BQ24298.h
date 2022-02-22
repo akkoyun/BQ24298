@@ -32,7 +32,7 @@ class BQ24298 {
 		// Public Functions
 		// ************************************************************
 
-		bool 		begin(void);
+		bool		begin(void);
 		bool 		Set_Charge_Current(float _Charge_Current);
 		bool 		Enable_Charge(void);
 		bool 		Disable_Charge(void);
@@ -53,6 +53,7 @@ class BQ24298 {
 		bool 		Reset_Watchdog(void);
 		bool 		Set_Minimum_System_Voltage(float _Minimum_Voltage);
 		float 		Get_Minimum_System_Voltage(void);
+		bool 		Set_Boost_Voltage(float _Boost_Voltage);
 		float 		Get_Charge_Current(void);
 		bool 		Set_PreCharge_Current(float _PreCharge_Current);
 		float 		Get_PreCharge_Current(void);
@@ -61,31 +62,33 @@ class BQ24298 {
 		bool 		Set_Charge_Voltage(float _Charge_Voltage);
 		float 		Get_Charge_Voltage(void);
 		uint8_t 	Read_ChargeTerm_Register(void);
-		bool 		Disable_Watchdog(void);
+		bool 		Set_Watchdog(uint8_t _Timer);
 		bool 		Set_Thermal_Regulation_Temperature(uint8_t _Temperature);
 		int 		Get_Thermal_Regulation_Temperature(void);
 		bool 		Disable_DPDM(void);
 		bool 		Enable_DPDM(void);
-		bool 		Enable_BATFET(void);
-		bool 		Disable_BATFET(void);
-		bool 		Enable_ChargeFault_INT(void);
-		bool 		Disable_ChargeFault_INT(void);
+		bool 		BATFET_Disable_Bit(bool _State);
+		bool 		ChargeFault_INT(bool _State);
 		bool 		Enable_BatFault_INT(void);
 		bool 		Disable_BatFault_INT(void);
 		uint8_t 	Read_OpControl_Register(void);
-		int 		USBmode(void);
-		int 		Charge_Status(void);
-		bool 		is_Power_Good(void);
-		bool 		is_Hot(void);
-		bool 		Can_Run_On_Battery(void);
-		bool 		is_Batt_Connected(void);
+		uint8_t		VBUS_STAT(void);
+		uint8_t		Charge_Status(void);
+		bool 		PG_STAT(void);
+		bool 		THERM_STAT(void);
+		bool 		VSYS_STAT(void);
+		bool 		DPM_STAT(void);
 		uint8_t 	Read_System_Status_Register(void);
 		uint8_t 	Read_Fault_Register(void);
 		uint8_t		Get_Charge_Fault(void);
-		uint8_t		Has_Battery_Temperature_Fault(void);
-		bool 		is_Watchdog_Expired(void);
-		bool 		is_Battery_In_Over_Voltage(void);
+		uint8_t		NTC_FAULT(void);
+		bool 		WATCHDOG_FAULT(void);
+		bool 		BAT_OVP_FAULT(void);
 		uint8_t 	Get_Version(void);
+		bool 		BATLOWV(void);
+		bool 		BCOLD(void);
+		bool 		Disable_BHOT(void);
+		uint8_t 	Get_Fault_Register(void);
 
 	private:
 

@@ -17,6 +17,6 @@
 #endif
 
 // Define Version
-#define Version				        "02.00.00"
+#define BQ24298_Version	        "02.01.00"
 
 #endif
