@@ -15,9 +15,14 @@
 #include <Arduino.h>
 #endif
 
-// Define Library Structures
-#ifndef __BQ24298_CONFIG__
-#include <Config.h>
+// Define Round Function
+#ifndef BQ_Round
+#define BQ_Round(x)     ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
+#endif
+
+// Define I2C Functions Library
+#ifndef __I2C_Functions__
+#include <I2C_Functions.h>
 #endif
 
 class BQ24298 {
