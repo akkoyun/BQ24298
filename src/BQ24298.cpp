@@ -12,7 +12,7 @@
 bool BQ24298::begin(void) {
 
 	// Check PMIC Version
-	uint8_t _Version = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Version__);
+	uint8_t _Version = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x0A);
 
 	// Control for Version
 	if (_Version == 0x24) {
@@ -70,7 +70,7 @@ bool BQ24298::begin(void) {
 bool BQ24298::Enable_Buck(void) {
 
 	// Clear Bit
-	I2C.Clear_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Input_Source__, 7, true);
+	I2C.Clear_Register_Bit(__I2C__MAX17055__Addr__, 0x00, 7, true);
 
 	// End Function
 	return(true);
@@ -79,7 +79,7 @@ bool BQ24298::Enable_Buck(void) {
 bool BQ24298::Disable_Buck(void) {
 
 	// Set Bit
-	I2C.Set_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Input_Source__, 7, true);
+	I2C.Set_Register_Bit(__I2C__MAX17055__Addr__, 0x00, 7, true);
 
 	// End Function
 	return(true);
@@ -90,7 +90,7 @@ bool BQ24298::Disable_Buck(void) {
 bool BQ24298::Disable_OTG(void) {
 
 	// Read Register
-	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__);
+	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Set Register
 	uint8_t _PowerOn_Config_Register;
@@ -98,7 +98,7 @@ bool BQ24298::Disable_OTG(void) {
 	_PowerOn_Config_Register = _Current_PowerOn_Config_Register | 0b00010000;
 
 	// Write Charge Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__, _PowerOn_Config_Register, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x01, _PowerOn_Config_Register, true);
 
 	// End Function
 	return(_Response);
@@ -107,7 +107,7 @@ bool BQ24298::Disable_OTG(void) {
 bool BQ24298::Enable_OTG(void) {
 
 	// Read Register
-	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__);
+	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Set Register
 	uint8_t _PowerOn_Config_Register;
@@ -115,7 +115,7 @@ bool BQ24298::Enable_OTG(void) {
 	_PowerOn_Config_Register = _Current_PowerOn_Config_Register | 0b00100000;
 
 	// Write Charge Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__, _PowerOn_Config_Register, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x01, _PowerOn_Config_Register, true);
 
 	// Command Delay
 	delay(220);
@@ -128,10 +128,10 @@ bool BQ24298::Enable_OTG(void) {
 // Charge Functions
 bool BQ24298::Enable_Charge(void) {
 
-	I2C.Set_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__, 4, true);
-	I2C.Set_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Timer_Control__, 7, true);
-	I2C.Set_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, 0, true);
-	I2C.Set_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, 1, true);
+	I2C.Set_Register_Bit(__I2C__MAX17055__Addr__, 0x01, 4, true);
+	I2C.Set_Register_Bit(__I2C__MAX17055__Addr__, 0x05, 7, true);
+	I2C.Set_Register_Bit(__I2C__MAX17055__Addr__, 0x07, 0, true);
+	I2C.Set_Register_Bit(__I2C__MAX17055__Addr__, 0x07, 1, true);
 
 	// Enable Bat FET
 	bool _Response = BATFET_Disable_Bit(false);
@@ -143,7 +143,7 @@ bool BQ24298::Enable_Charge(void) {
 bool BQ24298::Disable_Charge(void) {
 
 	// Read Curent Power On Config Register
-	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__);
+	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Control for Register Read
 	if (_Current_PowerOn_Config_Register = 0xFF) return(false);
@@ -152,13 +152,13 @@ bool BQ24298::Disable_Charge(void) {
 	uint8_t _PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0xCF;
 
 	// Write Charge Register
-	I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__, _PowerOn_Config_Register, false);
+	I2C.Write_Register(__I2C__MAX17055__Addr__, 0x01, _PowerOn_Config_Register, false);
 
 	// Set Charge Termination Bit
-	I2C.Clear_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Timer_Control__, 7, true);
+	I2C.Clear_Register_Bit(__I2C__MAX17055__Addr__, 0x05, 7, true);
 
 	// Read Curent Power On Config Register
-	uint8_t _Current_Misc_Control_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__);
+	uint8_t _Current_Misc_Control_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x07);
 
 	// Control for Register Read
 	if (_Current_Misc_Control_Register = 0xFF) return(false);
@@ -167,7 +167,7 @@ bool BQ24298::Disable_Charge(void) {
 	uint8_t _Misc_Control_Register = _Current_Misc_Control_Register & 0xFC;
 
 	// Write Charge Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, _Misc_Control_Register, false);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x07, _Misc_Control_Register, false);
 
 	// End Function
 	return(_Response);
@@ -178,22 +178,22 @@ bool BQ24298::Disable_Charge(void) {
 bool BQ24298::Enable_Boost_Mode(void) {
 
 	// Set OTG Config Bit
-	bool _Response1 = I2C.Set_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__, 5, true);
+	bool _Response1 = I2C.Set_Register_Bit(__I2C__MAX17055__Addr__, 0x01, 5, true);
 
 	// Set Charge Termination Bit
-	bool _Response2 = I2C.Clear_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Timer_Control__, 7, true);
+	bool _Response2 = I2C.Clear_Register_Bit(__I2C__MAX17055__Addr__, 0x05, 7, true);
 
 
 
 
 	// Read Curent Misc Control Register
-	uint8_t _Current_Misc_Control_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__);
+	uint8_t _Current_Misc_Control_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x07);
 
 	// Set Mask
 	uint8_t _Misc_Control_Register = _Current_Misc_Control_Register | 0x03;
 
 	// Write Charge Register
-	bool _Response3 = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, _Misc_Control_Register | 0x08, true);
+	bool _Response3 = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x07, _Misc_Control_Register | 0x08, true);
 
 	// Command Delay
 	delay(500);
@@ -205,7 +205,7 @@ bool BQ24298::Enable_Boost_Mode(void) {
 bool BQ24298::Disable_Boost_Mode(void) {
 
 	// Read Curent Misc Control Register
-	uint8_t _Current_Power_On_Control_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__);
+	uint8_t _Current_Power_On_Control_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Control for Register Read
 	if (_Current_Power_On_Control_Register = 0xFF) return(false);
@@ -214,7 +214,7 @@ bool BQ24298::Disable_Boost_Mode(void) {
 	uint8_t _Power_On_Control_Register = _Current_Power_On_Control_Register & 0xCF;
 
 	// Write Charge Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__, _Power_On_Control_Register | 0x10, false);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x01, _Power_On_Control_Register | 0x10, false);
 
 	// End Function
 	return(_Response);
@@ -225,7 +225,7 @@ bool BQ24298::Disable_Boost_Mode(void) {
 bool BQ24298::Enable_Charging() {
 
 	// Read Register
-	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__);
+	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Set Register
 	uint8_t _PowerOn_Config_Register;
@@ -233,7 +233,7 @@ bool BQ24298::Enable_Charging() {
 	_PowerOn_Config_Register = _Current_PowerOn_Config_Register | 0b00010000;
 
 	// Write Charge Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__, _PowerOn_Config_Register, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x01, _PowerOn_Config_Register, true);
 
 	// End Function
 	return(_Response);
@@ -242,7 +242,7 @@ bool BQ24298::Enable_Charging() {
 bool BQ24298::Disable_Charging() {
 
 	// Read Register
-	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__);
+	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Control for Register Read
 	if (_Current_PowerOn_Config_Register = 0xFF) return(false);
@@ -251,7 +251,7 @@ bool BQ24298::Disable_Charging() {
 	uint8_t _PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0xCF;
 
 	// Write Charge Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__, _PowerOn_Config_Register, false);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x01, _PowerOn_Config_Register, false);
 
 	// End Function
 	return(_Response);
@@ -266,7 +266,7 @@ bool BQ24298::Set_Charge_Current(float _Charge_Current) {
     if (_Charge_Current <= 0.512) _Charge_Current = 0.512;
 
 	// Read Curent Charge Register
-	uint8_t _Current_Data = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Current_Control__);
+	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x02);
 
 	// Define Charge Current Register
 	uint8_t _Charge_Register = _Current_Data & 0x03;
@@ -299,7 +299,7 @@ bool BQ24298::Set_Charge_Current(float _Charge_Current) {
 	}
 
 	// Write Charge Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Current_Control__, _Charge_Register, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x02, _Charge_Register, true);
 
 	// End Functions
 	return(_Response);
@@ -311,7 +311,7 @@ float BQ24298::Get_Charge_Current(void) {
 	float _Charge_Current = 0.512;
 
 	// Read Curent Charge Register
-	uint8_t _Current_Data = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Current_Control__);
+	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x02);
 
 	// Set Value
 	if (bitRead(_Current_Data, 2) == true) _Current_Data += 0.064;
@@ -332,7 +332,7 @@ bool BQ24298::Set_Charge_Voltage(float _Charge_Voltage) {
     if (_Charge_Voltage <= 3.504) _Charge_Voltage = 3.504;
 
 	// Read Register
-	uint8_t _Current_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Voltage_Control__);
+	uint8_t _Current_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x04);
 
 	// Set Mask
 	uint8_t _Voltage_Register = _Current_Register & 0x03;
@@ -365,7 +365,7 @@ bool BQ24298::Set_Charge_Voltage(float _Charge_Voltage) {
 	}
 
 	// Write Voltage Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Voltage_Control__, _Voltage_Register, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x04, _Voltage_Register, true);
 
 	// End Functions
 	return(_Response);
@@ -374,7 +374,7 @@ bool BQ24298::Set_Charge_Voltage(float _Charge_Voltage) {
 float BQ24298::Get_Charge_Voltage(void) {
 
 	// Read Curent Charge Register
-	uint8_t _Current_Charge_Voltage_Control_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Voltage_Control__);
+	uint8_t _Current_Charge_Voltage_Control_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x04);
 
 	// Control for Register Read
 	if (_Current_Charge_Voltage_Control_Register = 0xFF) return(NAN);
@@ -394,25 +394,25 @@ float BQ24298::Get_Charge_Voltage(void) {
 bool BQ24298::Set_Input_Current_Limit(float _Input_Current) {
 
 	// Read Curent Charge Register
-	uint8_t _Input_Source_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Input_Source__);
+	uint8_t _Input_Source_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x00);
 
 	// Set Mask
 	uint8_t _Mask = _Input_Source_Register & 0xF8;
 
 	// Set Current Value
-	uint8_t _Current_Value = __BQ24298_CURRENT_LIM_100__;
+	uint8_t _Current_Value = 0x00;
 
 	// Set Current Value
-	if (_Input_Current > 0.015) _Current_Value = __BQ24298_CURRENT_LIM_150__;
-	if (_Input_Current >= 0.5) _Current_Value = __BQ24298_CURRENT_LIM_500__;
-	if (_Input_Current >= 0.9) _Current_Value = __BQ24298_CURRENT_LIM_900__;
-	if (_Input_Current >= 1.2) _Current_Value = __BQ24298_CURRENT_LIM_1200__;
-	if (_Input_Current >= 1.5) _Current_Value = __BQ24298_CURRENT_LIM_1500__;
-	if (_Input_Current >= 2.0) _Current_Value = __BQ24298_CURRENT_LIM_2000__;
-	if (_Input_Current >= 3.0) _Current_Value = __BQ24298_CURRENT_LIM_3000__;
+	if (_Input_Current > 0.015) _Current_Value = 0x01;
+	if (_Input_Current >= 0.5) _Current_Value = 0x02;
+	if (_Input_Current >= 0.9) _Current_Value = 0x03;
+	if (_Input_Current >= 1.2) _Current_Value = 0x04;
+	if (_Input_Current >= 1.5) _Current_Value = 0x05;
+	if (_Input_Current >= 2.0) _Current_Value = 0x06;
+	if (_Input_Current >= 3.0) _Current_Value = 0x07;
 
 	// Write Voltage Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_Input_Source__, _Current_Value | _Mask, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x00, _Current_Value | _Mask, true);
 
 	// End Functions
 	return(_Response);
@@ -421,7 +421,7 @@ bool BQ24298::Set_Input_Current_Limit(float _Input_Current) {
 float BQ24298::Get_Input_Current_Limit(void) {
 
 	// Read Curent Charge Register
-	uint8_t _Input_Source_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Input_Source__);
+	uint8_t _Input_Source_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x00);
 
 	// Control for Register Read
 	if (_Input_Source_Register = 0xFF) return(NAN);
@@ -431,21 +431,21 @@ float BQ24298::Get_Input_Current_Limit(void) {
 
 	// Decide Response
     switch (_Mask) {
-        case __BQ24298_CURRENT_LIM_100__:
+        case 0x00:
             return 0.1;
-        case __BQ24298_CURRENT_LIM_150__:
+        case 0x01:
             return 0.015;
-        case __BQ24298_CURRENT_LIM_500__:
+        case 0x02:
             return 0.5;
-        case __BQ24298_CURRENT_LIM_900__:
+        case 0x03:
             return 0.9;
-        case __BQ24298_CURRENT_LIM_1200__:
+        case 0x04:
             return 1.2;
-        case __BQ24298_CURRENT_LIM_1500__:
+        case 0x05:
             return 1.5;
-        case __BQ24298_CURRENT_LIM_2000__:
+        case 0x06:
             return 2.0;
-        case __BQ24298_CURRENT_LIM_3000__:
+        case 0x07:
             return 3.0;
         default:
             return NAN;
@@ -462,7 +462,7 @@ bool BQ24298::Set_Input_Voltage_Limit(float _Input_Voltage) {
     if (_Input_Voltage <= 3.880) _Input_Voltage = 3.880;
 
 	// Read Curent Charge Register
-	uint8_t _Input_Source_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Input_Source__);
+	uint8_t _Input_Source_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x00);
 
 	// Set Mask
 	uint8_t _Voltage_Register = _Input_Source_Register & 0x87;
@@ -487,7 +487,7 @@ bool BQ24298::Set_Input_Voltage_Limit(float _Input_Voltage) {
 	}
 
 	// Write Voltage Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_Input_Source__, _Voltage_Register, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x00, _Voltage_Register, true);
 
 	// End Functions
 	return(_Response);
@@ -496,7 +496,7 @@ bool BQ24298::Set_Input_Voltage_Limit(float _Input_Voltage) {
 float BQ24298::Get_Input_Voltage_Limit(void) {
 
 	// Read Curent Charge Register
-	uint8_t _Input_Source_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Input_Source__);
+	uint8_t _Input_Source_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x00);
 
 	// Control for Register Read
 	if (_Input_Source_Register = 0xFF) return(NAN);
@@ -520,7 +520,7 @@ bool BQ24298::Set_Minimum_System_Voltage(float _Minimum_Voltage) {
     if (_Minimum_Voltage <= 3.0) _Minimum_Voltage = 3.0;
 
 	// Read Register
-	uint8_t _Current_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__);
+	uint8_t _Current_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Set Mask
 	uint8_t _Voltage_Register = _Current_Register & 0xF1;
@@ -541,7 +541,7 @@ bool BQ24298::Set_Minimum_System_Voltage(float _Minimum_Voltage) {
 	}
 
 	// Write Voltage Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__, _Voltage_Register, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x01, _Voltage_Register, true);
 
 	// End Functions
 	return(_Response);
@@ -550,7 +550,7 @@ bool BQ24298::Set_Minimum_System_Voltage(float _Minimum_Voltage) {
 float BQ24298::Get_Minimum_System_Voltage(void) {
 
 	// Read Curent Charge Register
-	uint8_t _Input_Source_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__);
+	uint8_t _Input_Source_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Control for Register Read
 	if (_Input_Source_Register = 0xFF) return(NAN);
@@ -574,7 +574,7 @@ bool BQ24298::Set_Boost_Voltage(float _Boost_Voltage) {
     if (_Boost_Voltage <= 4.998) _Boost_Voltage = 4.998;
 
 	// Read Register
-	uint8_t _Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Thermal_Control__);
+	uint8_t _Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x06);
 
 	// Set Mask
 	_Register = _Register & 0xF0;
@@ -599,7 +599,7 @@ bool BQ24298::Set_Boost_Voltage(float _Boost_Voltage) {
 	}
 
 	// Write Voltage Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_Thermal_Control__, _Register, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x06, _Register, true);
 
 	// End Functions
 	return(_Response);
@@ -614,7 +614,7 @@ bool BQ24298::Set_PreCharge_Current(float _PreCharge_Current) {
     if (_PreCharge_Current < 0.128) _PreCharge_Current = 0.128;
 
 	// Read Curent Charge Register
-	uint8_t _Current_PreCharge_Current_Control_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PreCharge_Current_Control__);
+	uint8_t _Current_PreCharge_Current_Control_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x03);
 
 	// Control for Register Read
 	if (_Current_PreCharge_Current_Control_Register = 0xFF) return(false);
@@ -626,7 +626,7 @@ bool BQ24298::Set_PreCharge_Current(float _PreCharge_Current) {
 	uint8_t _Charge_Register = (BQ_Round(((_PreCharge_Current - 0.128f) / 0.008f)) & 0xF0) | _Mask;
 
 	// Write Charge Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_PreCharge_Current_Control__, _Charge_Register, false);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x03, _Charge_Register, false);
 
 	// End Functions
 	return(_Response);
@@ -635,7 +635,7 @@ bool BQ24298::Set_PreCharge_Current(float _PreCharge_Current) {
 float BQ24298::Get_PreCharge_Current(void) {
 
 	// Read Curent Charge Register
-	uint8_t _Current_PreCharge_Current_Control_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PreCharge_Current_Control__);
+	uint8_t _Current_PreCharge_Current_Control_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x03);
 
 	// Control for Register Read
 	if (_Current_PreCharge_Current_Control_Register = 0xFF) return(NAN);
@@ -659,7 +659,7 @@ bool BQ24298::Set_TermCharge_Current(float _Term_Charge_Current) {
     if (_Term_Charge_Current <= 0.128) _Term_Charge_Current = 0.128;
 
 	// Read Curent Charge Register
-	uint8_t _Current_Data = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PreCharge_Current_Control__);
+	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x03);
 
 	// Set Mask
 	uint8_t _Mask = _Current_Data & 0xF0;
@@ -680,7 +680,7 @@ bool BQ24298::Set_TermCharge_Current(float _Term_Charge_Current) {
 	}
 
 	// Write Charge Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_PreCharge_Current_Control__, _Mask, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x03, _Mask, true);
 
 	// End Functions
 	return(_Response);
@@ -689,7 +689,7 @@ bool BQ24298::Set_TermCharge_Current(float _Term_Charge_Current) {
 float BQ24298::Get_TermCharge_Current(void) {
 
 	// Read Curent Charge Register
-	uint8_t _Current_Data = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_PreCharge_Current_Control__);
+	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x03);
 
 	// Control for Register Read
 	if (_Current_Data = 0xFF) return(NAN);
@@ -713,7 +713,7 @@ bool BQ24298::Set_Thermal_Regulation_Temperature(uint8_t _Temperature) {
     if (_Temperature < 60) _Temperature = 60;
 
 	// Read Curent Charge Register
-	uint8_t _Current_Data = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Thermal_Control__);
+	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x06);
 
 	// Control for Register Read
 	if (_Current_Data = 0xFF) return(false);
@@ -725,7 +725,7 @@ bool BQ24298::Set_Thermal_Regulation_Temperature(uint8_t _Temperature) {
 	uint8_t _Data = (BQ_Round(((_Temperature - 60) / 20)) & 0x03) | _Mask;
 
 	// Write Charge Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_Thermal_Control__, _Data, false);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x06, _Data, false);
 
 	// End Functions
 	return(_Response);
@@ -734,7 +734,7 @@ bool BQ24298::Set_Thermal_Regulation_Temperature(uint8_t _Temperature) {
 int BQ24298::Get_Thermal_Regulation_Temperature() {
 
 	// Read Curent Charge Register
-	uint8_t _Current_Data = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Thermal_Control__);
+	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x06);
 
 	// Control for Register Read
 	if (_Current_Data = 0xFF) return(NAN);
@@ -756,8 +756,8 @@ bool BQ24298::BATFET_Disable_Bit(bool _State) {
 	// Declare Variable
 	bool _Response = false;
 
-	if (!_State) _Response = I2C.Clear_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, 5, true);
-	if (_State) _Response = I2C.Set_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, 5, true);
+	if (!_State) _Response = I2C.Clear_Register_Bit(__I2C__MAX17055__Addr__, 0x07, 5, true);
+	if (_State) _Response = I2C.Set_Register_Bit(__I2C__MAX17055__Addr__, 0x07, 5, true);
 
 	// End Function
 	return(_Response);
@@ -768,7 +768,7 @@ bool BQ24298::BATFET_Disable_Bit(bool _State) {
 bool BQ24298::Disable_DPDM() {
 
 	// Set BatFet Bit
-	I2C.Clear_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, 7, true);
+	I2C.Clear_Register_Bit(__I2C__MAX17055__Addr__, 0x07, 7, true);
 
 	// End Function
 	return(true);
@@ -777,7 +777,7 @@ bool BQ24298::Disable_DPDM() {
 bool BQ24298::Enable_DPDM() {
 
 	// Set BatFet Bit
-	I2C.Set_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, 7, true);
+	I2C.Set_Register_Bit(__I2C__MAX17055__Addr__, 0x07, 7, true);
 
 	// End Function
 	return(true);
@@ -788,7 +788,7 @@ bool BQ24298::Enable_DPDM() {
 bool BQ24298::Enable_BatFault_INT(){
 
 	// Set BatFet Bit
-	I2C.Set_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, 0, true);
+	I2C.Set_Register_Bit(__I2C__MAX17055__Addr__, 0x07, 0, true);
 
 	// End Function
 	return(true);
@@ -797,7 +797,7 @@ bool BQ24298::Enable_BatFault_INT(){
 bool BQ24298::Disable_BatFault_INT() {
 
 	// Set BatFet Bit
-	I2C.Clear_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, 0, true);
+	I2C.Clear_Register_Bit(__I2C__MAX17055__Addr__, 0x07, 0, true);
 
 	// End Function
 	return(true);
@@ -814,7 +814,7 @@ bool BQ24298::ChargeFault_INT(bool _State) {
 	if (_State == true) {
 
 		// Set Bit
-		_Response = I2C.Set_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, 1, true);
+		_Response = I2C.Set_Register_Bit(__I2C__MAX17055__Addr__, 0x07, 1, true);
 
 	}
 	
@@ -822,7 +822,7 @@ bool BQ24298::ChargeFault_INT(bool _State) {
 	if (_State == false) {
 
 		// Clear Bit
-		_Response = I2C.Clear_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Misc_Control__, 1, true);
+		_Response = I2C.Clear_Register_Bit(__I2C__MAX17055__Addr__, 0x07, 1, true);
 
 	}
 
@@ -834,7 +834,7 @@ bool BQ24298::ChargeFault_INT(bool _State) {
 uint8_t BQ24298::Get_Charge_Fault(void) {
 
 	// Read Curent Charge Register
-	uint8_t _Current_Fault_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Fault__);
+	uint8_t _Current_Fault_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x09);
 
 	// Set Data
 	uint8_t _Fault_Register = _Current_Fault_Register & 0x30;
@@ -848,7 +848,7 @@ uint8_t BQ24298::Get_Charge_Fault(void) {
 bool BQ24298::Reset_Watchdog(void) {
 
 	// Set Bit
-	I2C.Set_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_PowerOn_Config__, 6, true);
+	I2C.Set_Register_Bit(__I2C__MAX17055__Addr__, 0x01, 6, true);
 
 	// End Function
 	return(true);
@@ -860,7 +860,7 @@ bool BQ24298::Set_Watchdog(uint8_t _Timer) {
 	uint8_t _Register;
 
 	// Read Curent Charge Register
-	uint8_t _Current_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Timer_Control__);
+	uint8_t _Current_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x05);
 
 	// Handle Timer
 	if (_Timer == 0) { // Disable
@@ -880,7 +880,7 @@ bool BQ24298::Set_Watchdog(uint8_t _Timer) {
 	}
 
 	// Write Voltage Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Timer_Control__, _Register, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x05, _Register, true);
 
 	// End Functions
 	return(_Response);
@@ -891,7 +891,7 @@ bool BQ24298::Set_Watchdog(uint8_t _Timer) {
 bool BQ24298::PG_STAT(void) {
 
 	// Get Bit Value
-	bool _Response = I2C.Read_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_System_Status__, 2);
+	bool _Response = I2C.Read_Register_Bit(__I2C__MAX17055__Addr__, 0x08, 2);
 	
 	// End Function
 	return(_Response);
@@ -900,7 +900,7 @@ bool BQ24298::PG_STAT(void) {
 bool BQ24298::THERM_STAT(void) {
 
 	// Get Bit Value
-	bool _Response = I2C.Read_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_System_Status__, 1);
+	bool _Response = I2C.Read_Register_Bit(__I2C__MAX17055__Addr__, 0x08, 1);
 	
 	// End Function
 	return(_Response);
@@ -909,7 +909,7 @@ bool BQ24298::THERM_STAT(void) {
 bool BQ24298::DPM_STAT(void) {
 
 	// Get Bit Value
-	bool _Response = I2C.Read_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_System_Status__, 3);
+	bool _Response = I2C.Read_Register_Bit(__I2C__MAX17055__Addr__, 0x08, 3);
 	
 	// End Function
 	return(_Response);
@@ -918,7 +918,7 @@ bool BQ24298::DPM_STAT(void) {
 bool BQ24298::WATCHDOG_FAULT(void) {
 
 	// Get Bit Value
-	bool _Response = I2C.Read_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Fault__, 7);
+	bool _Response = I2C.Read_Register_Bit(__I2C__MAX17055__Addr__, 0x09, 7);
 	
 	// End Function
 	return(_Response);
@@ -927,7 +927,7 @@ bool BQ24298::WATCHDOG_FAULT(void) {
 bool BQ24298::BAT_OVP_FAULT(void) {
 
 	// Get Bit Value
-	bool _Response = I2C.Read_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Fault__, 3);
+	bool _Response = I2C.Read_Register_Bit(__I2C__MAX17055__Addr__, 0x09, 3);
 	
 	// End Function
 	return(_Response);
@@ -936,7 +936,7 @@ bool BQ24298::BAT_OVP_FAULT(void) {
 bool BQ24298::VSYS_STAT(void) {
 
 	// Get Bit Value
-	bool _Response = I2C.Read_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_System_Status__, 0);
+	bool _Response = I2C.Read_Register_Bit(__I2C__MAX17055__Addr__, 0x08, 0);
 	
 	// End Function
 	return(_Response);
@@ -945,7 +945,7 @@ bool BQ24298::VSYS_STAT(void) {
 uint8_t BQ24298::NTC_FAULT() {
 
 	// Read Curent Charge Register
-	uint8_t _Current_Data = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Fault__);
+	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x09);
 
 	// Control for Register Read
 	if (_Current_Data = 0xFF) return(false);
@@ -963,7 +963,7 @@ uint8_t BQ24298::VBUS_STAT(void) {
 	uint8_t _Status;
 
 	// Read Curent Charge Register
-	uint8_t _Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_System_Status__);
+	uint8_t _Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x08);
 
 	// Handle Data
 	if (bitRead(_Register,7) == 0 and bitRead(_Register,6) == 0) _Status = 0;
@@ -981,7 +981,7 @@ uint8_t BQ24298::Charge_Status(void) {
 	uint8_t _Status;
 
 	// Read Curent Charge Register
-	uint8_t _Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_System_Status__);
+	uint8_t _Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x08);
 
 	// Handle Data
 	if (bitRead(_Register,5) == 0 and bitRead(_Register,4) == 0) _Status = 0;
@@ -996,7 +996,7 @@ uint8_t BQ24298::Charge_Status(void) {
 bool BQ24298::BATLOWV(void) {
 
 	// Get Bit Value
-	bool _Response = I2C.Read_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Voltage_Control__, 1);
+	bool _Response = I2C.Read_Register_Bit(__I2C__MAX17055__Addr__, 0x04, 1);
 	
 	// End Function
 	return(_Response);
@@ -1005,7 +1005,7 @@ bool BQ24298::BATLOWV(void) {
 bool BQ24298::BCOLD(void) {
 
 	// Get Bit Value
-	bool _Response = I2C.Read_Register_Bit(I2C.MAX17055.I2C_Address, __BQ24298_Charge_Current_Control__, 1);
+	bool _Response = I2C.Read_Register_Bit(__I2C__MAX17055__Addr__, 0x02, 1);
 	
 	// End Function
 	return(_Response);
@@ -1017,13 +1017,13 @@ bool BQ24298::Disable_BHOT(void) {
 	uint8_t _Register;
 
 	// Read Curent Charge Register
-	uint8_t _Current_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Thermal_Control__);
+	uint8_t _Current_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x06);
 
 	// Handle Timer
 	_Register = _Current_Register | 0b00001111;
 
 	// Write Voltage Register
-	bool _Response = I2C.Write_Register(I2C.MAX17055.I2C_Address, __BQ24298_Thermal_Control__, _Register, true);
+	bool _Response = I2C.Write_Register(__I2C__MAX17055__Addr__, 0x06, _Register, true);
 
 	// End Functions
 	return(_Response);
@@ -1033,7 +1033,7 @@ bool BQ24298::Disable_BHOT(void) {
 uint8_t BQ24298::Get_Fault_Register(void) {
 
 	// Read Curent Charge Register
-	uint8_t _Fault_Register = I2C.Read_Register(I2C.MAX17055.I2C_Address, __BQ24298_Fault__);
+	uint8_t _Fault_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x09);
 
 	// End Functions
 	return(_Fault_Register);

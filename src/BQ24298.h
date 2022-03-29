@@ -38,6 +38,26 @@ class BQ24298 {
 		// ************************************************************
 
 		bool		begin(void);
+		bool 		PG_STAT(void);
+		bool 		THERM_STAT(void);
+		bool 		VSYS_STAT(void);
+		bool 		DPM_STAT(void);
+		bool 		WATCHDOG_FAULT(void);
+		bool 		BAT_OVP_FAULT(void);
+		uint8_t 	Get_Fault_Register(void);
+		uint8_t		Charge_Status(void);
+		uint8_t		VBUS_STAT(void);
+
+	private:
+
+		// ************************************************************
+		// Private Variables
+		// ************************************************************
+
+		// ************************************************************
+		// Private Functions
+		// ************************************************************
+
 		bool 		Set_Charge_Current(float _Charge_Current);
 		bool 		Enable_Charge(void);
 		bool 		Disable_Charge(void);
@@ -77,33 +97,14 @@ class BQ24298 {
 		bool 		Enable_BatFault_INT(void);
 		bool 		Disable_BatFault_INT(void);
 		uint8_t 	Read_OpControl_Register(void);
-		uint8_t		VBUS_STAT(void);
-		uint8_t		Charge_Status(void);
-		bool 		PG_STAT(void);
-		bool 		THERM_STAT(void);
-		bool 		VSYS_STAT(void);
-		bool 		DPM_STAT(void);
 		uint8_t 	Read_System_Status_Register(void);
 		uint8_t 	Read_Fault_Register(void);
 		uint8_t		Get_Charge_Fault(void);
 		uint8_t		NTC_FAULT(void);
-		bool 		WATCHDOG_FAULT(void);
-		bool 		BAT_OVP_FAULT(void);
 		uint8_t 	Get_Version(void);
 		bool 		BATLOWV(void);
 		bool 		BCOLD(void);
 		bool 		Disable_BHOT(void);
-		uint8_t 	Get_Fault_Register(void);
-
-	private:
-
-		// ************************************************************
-		// Private Variables
-		// ************************************************************
-
-		// ************************************************************
-		// Private Functions
-		// ************************************************************
 
 };
 
