@@ -9,10 +9,11 @@ void setup() {
 	I2C.Set_Multiplexer(0x70, 5);
 
 	// Control for Charger
-	if (!Charger.begin()) {
-		Serial.println("Failed to initialize PMIC!");
-		while (1);
-	}
+	Charger.begin();
+//	if (!Charger.begin()) {
+//		Serial.println("Failed to initialize PMIC!");
+//		while (1);
+//	}
 
 }
 
@@ -27,7 +28,7 @@ void loop() {
 	if (Charger.WATCHDOG_FAULT()) Serial.println("Watchdog expired");
 	if (Charger.VSYS_STAT() == 1) {Serial.println("BAT < VSYSMIN");} else {Serial.println("BAT > VSYSMIN");}
 	
-Serial.println(Charger.Get_Fault_Register(), HEX);
+	Serial.println(Charger.Get_Fault_Register(), HEX);
 
 	switch (Charger.Charge_Status()) {
 	case 1:
