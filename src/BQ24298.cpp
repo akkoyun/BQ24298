@@ -146,7 +146,7 @@ bool BQ24298::Disable_Charge(void) {
 	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Control for Register Read
-	if (_Current_PowerOn_Config_Register = 0xFF) return(false);
+	if (_Current_PowerOn_Config_Register == 0xFF) return(false);
 
 	// Set Mask
 	uint8_t _PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0xCF;
@@ -161,7 +161,7 @@ bool BQ24298::Disable_Charge(void) {
 	uint8_t _Current_Misc_Control_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x07);
 
 	// Control for Register Read
-	if (_Current_Misc_Control_Register = 0xFF) return(false);
+	if (_Current_Misc_Control_Register == 0xFF) return(false);
 
 	// Set Mask
 	uint8_t _Misc_Control_Register = _Current_Misc_Control_Register & 0xFC;
@@ -208,7 +208,7 @@ bool BQ24298::Disable_Boost_Mode(void) {
 	uint8_t _Current_Power_On_Control_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Control for Register Read
-	if (_Current_Power_On_Control_Register = 0xFF) return(false);
+	if (_Current_Power_On_Control_Register == 0xFF) return(false);
 
 	// Set Mask
 	uint8_t _Power_On_Control_Register = _Current_Power_On_Control_Register & 0xCF;
@@ -245,7 +245,7 @@ bool BQ24298::Disable_Charging() {
 	uint8_t _Current_PowerOn_Config_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Control for Register Read
-	if (_Current_PowerOn_Config_Register = 0xFF) return(false);
+	if (_Current_PowerOn_Config_Register == 0xFF) return(false);
 
 	// Set Register
 	uint8_t _PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0xCF;
@@ -314,15 +314,15 @@ float BQ24298::Get_Charge_Current(void) {
 	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x02);
 
 	// Set Value
-	if (bitRead(_Current_Data, 2) == true) _Current_Data += 0.064;
-	if (bitRead(_Current_Data, 3) == true) _Current_Data += 0.128;
-	if (bitRead(_Current_Data, 4) == true) _Current_Data += 0.256;
-	if (bitRead(_Current_Data, 5) == true) _Current_Data += 0.512;
-	if (bitRead(_Current_Data, 6) == true) _Current_Data += 1.024;
-	if (bitRead(_Current_Data, 7) == true) _Current_Data += 2.048;
+	if (bitRead(_Current_Data, 2) == true) _Charge_Current += 0.064;
+	if (bitRead(_Current_Data, 3) == true) _Charge_Current += 0.128;
+	if (bitRead(_Current_Data, 4) == true) _Charge_Current += 0.256;
+	if (bitRead(_Current_Data, 5) == true) _Charge_Current += 0.512;
+	if (bitRead(_Current_Data, 6) == true) _Charge_Current += 1.024;
+	if (bitRead(_Current_Data, 7) == true) _Charge_Current += 2.048;
 
 	// End Functions
-	return(_Current_Data);
+	return(_Charge_Current);
 
 }
 bool BQ24298::Set_Charge_Voltage(float _Charge_Voltage) {
@@ -377,7 +377,7 @@ float BQ24298::Get_Charge_Voltage(void) {
 	uint8_t _Current_Charge_Voltage_Control_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x04);
 
 	// Control for Register Read
-	if (_Current_Charge_Voltage_Control_Register = 0xFF) return(NAN);
+	if (_Current_Charge_Voltage_Control_Register == 0xFF) return(NAN);
 	
 	// Set Mask
 	uint8_t _Mask = _Current_Charge_Voltage_Control_Register & 0xFC;
@@ -424,7 +424,7 @@ float BQ24298::Get_Input_Current_Limit(void) {
 	uint8_t _Input_Source_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x00);
 
 	// Control for Register Read
-	if (_Input_Source_Register = 0xFF) return(NAN);
+	if (_Input_Source_Register == 0xFF) return(NAN);
 	
 	// Set Mask
 	uint8_t _Mask = _Input_Source_Register & 0x07;
@@ -499,7 +499,7 @@ float BQ24298::Get_Input_Voltage_Limit(void) {
 	uint8_t _Input_Source_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x00);
 
 	// Control for Register Read
-	if (_Input_Source_Register = 0xFF) return(NAN);
+	if (_Input_Source_Register == 0xFF) return(NAN);
 	
 	// Set Mask
 	uint8_t _Mask = _Input_Source_Register & 0x78;
@@ -553,7 +553,7 @@ float BQ24298::Get_Minimum_System_Voltage(void) {
 	uint8_t _Input_Source_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x01);
 
 	// Control for Register Read
-	if (_Input_Source_Register = 0xFF) return(NAN);
+	if (_Input_Source_Register == 0xFF) return(NAN);
 	
 	// Set Mask
 	uint8_t _Mask = _Input_Source_Register & 0x0E;
@@ -617,7 +617,7 @@ bool BQ24298::Set_PreCharge_Current(float _PreCharge_Current) {
 	uint8_t _Current_PreCharge_Current_Control_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x03);
 
 	// Control for Register Read
-	if (_Current_PreCharge_Current_Control_Register = 0xFF) return(false);
+	if (_Current_PreCharge_Current_Control_Register == 0xFF) return(false);
 	
 	// Set Mask
 	uint8_t _Mask = _Current_PreCharge_Current_Control_Register & 0x0F;
@@ -638,7 +638,7 @@ float BQ24298::Get_PreCharge_Current(void) {
 	uint8_t _Current_PreCharge_Current_Control_Register = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x03);
 
 	// Control for Register Read
-	if (_Current_PreCharge_Current_Control_Register = 0xFF) return(NAN);
+	if (_Current_PreCharge_Current_Control_Register == 0xFF) return(NAN);
 	
 	// Set Mask
 	uint8_t _Mask = _Current_PreCharge_Current_Control_Register & 0xF0;
@@ -692,7 +692,7 @@ float BQ24298::Get_TermCharge_Current(void) {
 	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x03);
 
 	// Control for Register Read
-	if (_Current_Data = 0xFF) return(NAN);
+	if (_Current_Data == 0xFF) return(NAN);
 	
 	// Set Mask
 	uint8_t _Mask = _Current_Data & 0x0F;
@@ -716,7 +716,7 @@ bool BQ24298::Set_Thermal_Regulation_Temperature(uint8_t _Temperature) {
 	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x06);
 
 	// Control for Register Read
-	if (_Current_Data = 0xFF) return(false);
+	if (_Current_Data == 0xFF) return(false);
 	
 	// Set Mask
 	uint8_t _Mask = _Current_Data & 0xFC;
@@ -737,7 +737,7 @@ int BQ24298::Get_Thermal_Regulation_Temperature() {
 	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x06);
 
 	// Control for Register Read
-	if (_Current_Data = 0xFF) return(NAN);
+	if (_Current_Data == 0xFF) return(0);
 	
 	// Set Mask
 	uint8_t _Mask = _Current_Data & 0x03;
@@ -948,7 +948,7 @@ uint8_t BQ24298::NTC_FAULT() {
 	uint8_t _Current_Data = I2C.Read_Register(__I2C__MAX17055__Addr__, 0x09);
 
 	// Control for Register Read
-	if (_Current_Data = 0xFF) return(false);
+	if (_Current_Data == 0xFF) return(false);
 
 	// Control for OTG
 	if (!Disable_OTG()) return(false);
