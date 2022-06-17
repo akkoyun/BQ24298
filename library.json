@@ -1,6 +1,6 @@
 {
 	"name": "BQ24298",
-	"version": "2.2.2",
+	"version": "2.2.3",
 	"keywords": "Battery, BQ24298, Charge, buck, boost, power, management, PMIC, akkoyun, li-Ion",
 	"description": "The bq24298 is a highly-integrated switch-mode battery charge management and system power path management device for 1 cell Li-Ion and Li-polymer battery in a wide range of smart phone and tablet applications. Its low impedance power path optimizes switch-mode operation efficiency, reduces battery charging time and extends battery life during discharging phase.",
 	"authors":

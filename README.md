@@ -3,7 +3,7 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/akkoyun/BQ24298) ![arduino-library-badge](https://www.ardu-badge.com/badge/BQ24298.svg?) ![Visits Badge](https://badges.pufler.dev/visits/akkoyun/BQ24298) ![GitHub stars](https://img.shields.io/github/stars/akkoyun/BQ24298?style=flat&logo=github) ![Updated Badge](https://badges.pufler.dev/updated/akkoyun/BQ24298) ![PlatformIO Registry](https://badges.registry.platformio.org/packages/akkoyun/library/BQ24298.svg) 
 [![Check Arduino](https://github.com/akkoyun/BQ24298/actions/workflows/check-arduino.yml/badge.svg)](https://github.com/akkoyun/BQ24298/actions/workflows/check-arduino.yml) [![Compile Examples](https://github.com/akkoyun/BQ24298/actions/workflows/compile-examples.yml/badge.svg)](https://github.com/akkoyun/BQ24298/actions/workflows/compile-examples.yml) [![Spell Check](https://github.com/akkoyun/BQ24298/actions/workflows/spell-check.yml/badge.svg)](https://github.com/akkoyun/BQ24298/actions/workflows/spell-check.yml)
 
-	Build - 02.02.02
+	Build - 02.02.03
 
 ---
 
