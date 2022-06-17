@@ -26,11 +26,10 @@
 #endif
 
 // Define Charger Parameters
-#define _BQ24298_Input_Current_Limit_	3.0		// Input current limit
+#define _BQ24298_Charge_Voltage_		4.3		// Charge voltage
+#define _BQ24298_Input_Current_Limit_	1.0		// Input current limit
 #define _BQ24298_Input_Voltage_Limit_	5.08	// Input valtage limit
 #define _BQ24298_Min_System_Voltage_	4.0		// Minimum system voltage 
-#define _BQ24298_Charge_Voltage_		4.3		// Charge voltage
-#define _BQ24298_Charge_Current_		2		// Charge current limit
 #define _BQ24298_Charge_Term_Current_	0.128	// Charge termination current limit
 #define _BQ24298_Watchdog_				0		// Watchdog timer value
 #define _BQ24298_BatFet_Disable_		false	// Battery FET disable value
@@ -39,34 +38,33 @@
 class BQ24298 : public I2C_Functions {
 
 	private:
-
+		
 		/**
-		 * @brief Enable buck.
+		 * @brief Enable / disable buck.
+		 * @param State Status
 		 * @return true Function success.
 		 * @return false Function not success.
 		 */
-		bool Enable_Buck(void) {
+		bool Buck(bool State) {
 
-			// Clear Bit
-			Clear_Register_Bit(0x00, 7, true);
+			// Define Variable
+			bool Stat;
 
-			// End Function
-			return(true);
+			// Control State
+			if (State) {
 
-		}
+				// Set Bit
+				Stat = Set_Register_Bit(0x00, 7, true);
 
-		/**
-		 * @brief Disable buck.
-		 * @return true Function success.
-		 * @return false Function not success.
-		 */
-		bool Disable_Buck(void) {
+			} else {
 
-			// Set Bit
-			Set_Register_Bit(0x00, 7, true);
+				// Clear Bit
+				Stat = Clear_Register_Bit(0x00, 7, true);
+
+			}
 
 			// End Function
-			return(true);
+			return(Stat);
 
 		}
 
@@ -75,47 +73,26 @@ class BQ24298 : public I2C_Functions {
 		 * @return true Function success.
 		 * @return false Function not success.
 		 */
-		bool Enable_OTG(void) {
+		bool OTG(bool State) {
 
-			// Read Register
-			uint8_t _Current_PowerOn_Config_Register = Read_Register(0x01);
+			// Define Variable
+			bool Stat;
 
-			// Set Register
-			uint8_t _PowerOn_Config_Register;
-			_PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0b11001111;
-			_PowerOn_Config_Register = _Current_PowerOn_Config_Register | 0b00100000;
+			// Control State
+			if (State) {
 
-			// Write Charge Register
-			bool _Response = Write_Register(0x01, _PowerOn_Config_Register, true);
+				// Set Bit
+				Stat = Set_Register_Bit(0x01, 5, true);
 
-			// Command Delay
-			delay(220);
+			} else {
 
-			// End Function
-			return(_Response);
+				// Clear Bit
+				Stat = Clear_Register_Bit(0x01, 5, true);
 
-		}
-
-		/**
-		 * @brief Disable OTG.
-		 * @return true Function success.
-		 * @return false Function not success.
-		 */
-		bool Disable_OTG(void) {
-
-			// Read Register
-			uint8_t _Current_PowerOn_Config_Register = Read_Register(0x01);
-
-			// Set Register
-			uint8_t _PowerOn_Config_Register;
-			_PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0b11001111;
-			_PowerOn_Config_Register = _Current_PowerOn_Config_Register | 0b00010000;
-
-			// Write Charge Register
-			bool _Response = Write_Register(0x01, _PowerOn_Config_Register, true);
+			}
 
 			// End Function
-			return(_Response);
+			return(Stat);
 
 		}
 
@@ -129,11 +106,9 @@ class BQ24298 : public I2C_Functions {
 			// Set Charge Bits
 			Set_Register_Bit(0x01, 4, true);
 			Set_Register_Bit(0x05, 7, true);
-			Set_Register_Bit(0x07, 0, true);
-			Set_Register_Bit(0x07, 1, true);
 
 			// Enable Bat FET
-			bool _Response = BATFET_Disable_Bit(false);
+			bool _Response = BATFET(false);
 
 			// End Function
 			return(_Response);
@@ -187,25 +162,10 @@ class BQ24298 : public I2C_Functions {
 		bool Enable_Boost_Mode(void) {
 
 			// Set OTG Config Bit
-			bool _Response1 = Set_Register_Bit(0x01, 5, true);
-
-			// Set Charge Termination Bit
-			bool _Response2 = Clear_Register_Bit(0x05, 7, true);
-
-			// Read Curent Misc Control Register
-			uint8_t _Current_Misc_Control_Register = Read_Register(0x07);
-
-			// Set Mask
-			uint8_t _Misc_Control_Register = _Current_Misc_Control_Register | 0x03;
-
-			// Write Charge Register
-			bool _Response3 = Write_Register(0x07, _Misc_Control_Register | 0x08, true);
-
-			// Command Delay
-			delay(500);
+			bool Response = Set_Register_Bit(0x01, 5, true); // OTG_CONFIG -> true
 
 			// End Function
-			return(_Response1 & _Response2 & _Response3);
+			return(Response);
 
 		}
 
@@ -291,69 +251,46 @@ class BQ24298 : public I2C_Functions {
 			if (_Charge_Current >= 3.008) _Charge_Current = 3.008;
 			if (_Charge_Current <= 0.512) _Charge_Current = 0.512;
 
-			// Read Curent Charge Register
-			uint8_t _Current_Data = Read_Register(0x02);
+			// Read Current Register
+			uint8_t _Charge_Register = Read_Register(0x02) & 0b00000011;
 
-			// Define Charge Current Register
-			uint8_t _Charge_Register = _Current_Data & 0x03;
+			// Serial.println(_Charge_Register, BIN);
 
 			// Handel Data
-			float _Current = _Charge_Current - 0.512;
-			if (_Current >= 2048) {
+			if (_Charge_Current >= 2.048) {
 				_Charge_Register |= 0b10000000;
-				_Current -= 2048;
+				_Charge_Current -= 2.048;
 			}
-			if (_Current >= 1024) {
+			if (_Charge_Current >= 1.024) {
 				_Charge_Register |= 0b01000000;
-				_Current -= 1024;
+				_Charge_Current -= 1.024;
 			}
-			if (_Current >= 512) {
+			if (_Charge_Current >= 0.512) {
 				_Charge_Register |= 0b00100000;
-				_Current -= 512;
+				_Charge_Current -= 0.512;
 			}
-			if (_Current >= 256) {
+			if (_Charge_Current >= 0.256) {
 				_Charge_Register |= 0b00010000;
-				_Current -= 256;
+				_Charge_Current -= 0.256;
 			}
-			if (_Current >= 128) {
+			if (_Charge_Current >= 0.128) {
 				_Charge_Register |= 0b00001000;
-				_Current -= 128;
+				_Charge_Current -= 0.128;
 			}
-			if (_Current >= 64) {
+			if (_Charge_Current >= 0.064) {
 				_Charge_Register |= 0b00000100;
-				_Current -= 64;
+				_Charge_Current -= 0.064;
 			}
+
+			// Serial.println(_Charge_Register, BIN);
 
 			// Write Charge Register
 			bool _Response = Write_Register(0x02, _Charge_Register, true);
 
+			// Serial.println(_Response);
+
 			// End Functions
 			return(_Response);
-
-		}
-
-		/**
-		 * @brief Get charge current.
-		 * @return float Charge current.
-		 */
-		float Get_Charge_Current(void) {
-
-			// Declare Variable
-			float _Charge_Current = 0.512;
-
-			// Read Curent Charge Register
-			uint8_t _Current_Data = Read_Register(0x02);
-
-			// Set Value
-			if (bitRead(_Current_Data, 2) == true) _Charge_Current += 0.064;
-			if (bitRead(_Current_Data, 3) == true) _Charge_Current += 0.128;
-			if (bitRead(_Current_Data, 4) == true) _Charge_Current += 0.256;
-			if (bitRead(_Current_Data, 5) == true) _Charge_Current += 0.512;
-			if (bitRead(_Current_Data, 6) == true) _Charge_Current += 1.024;
-			if (bitRead(_Current_Data, 7) == true) _Charge_Current += 2.048;
-
-			// End Functions
-			return(_Charge_Current);
 
 		}
 
@@ -410,29 +347,6 @@ class BQ24298 : public I2C_Functions {
 		}
 
 		/**
-		 * @brief Get charge voltage.
-		 * @return float Charge voltage.
-		 */
-		float Get_Charge_Voltage(void) {
-
-			// Read Curent Charge Register
-			uint8_t _Current_Charge_Voltage_Control_Register = Read_Register(0x04);
-
-			// Control for Register Read
-			if (_Current_Charge_Voltage_Control_Register == 0xFF) return(NAN);
-			
-			// Set Mask
-			uint8_t _Mask = _Current_Charge_Voltage_Control_Register & 0xFC;
-
-			// Set Charge Register
-			float _Charge_Voltage_Control_Register = (_Mask * 0.004f) + 3.504f;
-
-			// End Functions
-			return(_Charge_Voltage_Control_Register);
-
-		}
-
-		/**
 		 * @brief Input current set function.
 		 * @param _Input_Current Input current value.
 		 * @return true Function success.
@@ -441,70 +355,23 @@ class BQ24298 : public I2C_Functions {
 		bool Set_Input_Current_Limit(float _Input_Current) {
 
 			// Read Curent Charge Register
-			uint8_t _Input_Source_Register = Read_Register(0x00);
-
-			// Set Mask
-			uint8_t _Mask = _Input_Source_Register & 0xF8;
+			uint8_t _Input_Source_Register = Read_Register(0x00) & 0b11111000;
 
 			// Set Current Value
-			uint8_t _Current_Value = 0x00;
-
-			// Set Current Value
-			if (_Input_Current > 0.015) _Current_Value = 0x01;
-			if (_Input_Current >= 0.5) _Current_Value = 0x02;
-			if (_Input_Current >= 0.9) _Current_Value = 0x03;
-			if (_Input_Current >= 1.2) _Current_Value = 0x04;
-			if (_Input_Current >= 1.5) _Current_Value = 0x05;
-			if (_Input_Current >= 2.0) _Current_Value = 0x06;
-			if (_Input_Current >= 3.0) _Current_Value = 0x07;
+			if (_Input_Current == 0.100) _Input_Source_Register |= 0b00000000;
+			if (_Input_Current == 0.150) _Input_Source_Register |= 0b00000001;
+			if (_Input_Current == 0.500) _Input_Source_Register |= 0b00000010;
+			if (_Input_Current == 0.900) _Input_Source_Register |= 0b00000011;
+			if (_Input_Current == 1.000) _Input_Source_Register |= 0b00000100;
+			if (_Input_Current == 1.500) _Input_Source_Register |= 0b00000101;
+			if (_Input_Current == 2.000) _Input_Source_Register |= 0b00000110;
+			if (_Input_Current == 3.000) _Input_Source_Register |= 0b00000111;
 
 			// Write Voltage Register
-			bool _Response = Write_Register(0x00, _Current_Value | _Mask, true);
+			bool _Response = Write_Register(0x00, _Input_Source_Register, true);
 
 			// End Functions
 			return(_Response);
-
-		}
-
-		/**
-		 * @brief Input current get function.
-		 * @return float Input current value.
-		 */
-		float Get_Input_Current_Limit(void) {
-
-			// Read Curent Charge Register
-			uint8_t _Input_Source_Register = Read_Register(0x00);
-
-			// Control for Register Read
-			if (_Input_Source_Register == 0xFF) return(NAN);
-			
-			// Set Mask
-			uint8_t _Mask = _Input_Source_Register & 0x07;
-
-			// Decide Response
-			switch (_Mask) {
-				case 0x00:
-					return 0.1;
-				case 0x01:
-					return 0.015;
-				case 0x02:
-					return 0.5;
-				case 0x03:
-					return 0.9;
-				case 0x04:
-					return 1.2;
-				case 0x05:
-					return 1.5;
-				case 0x06:
-					return 2.0;
-				case 0x07:
-					return 3.0;
-				default:
-					return NAN;
-			}
-
-			// End Function
-			return(0);
 
 		}
 
@@ -517,62 +384,35 @@ class BQ24298 : public I2C_Functions {
 		bool Set_Input_Voltage_Limit(float _Input_Voltage) {
 
 			// Control for Function Variable
-			if (_Input_Voltage >= 5.080) _Input_Voltage = 5.080;
+			if (_Input_Voltage >= 5.500) _Input_Voltage = 5.500;
 			if (_Input_Voltage <= 3.880) _Input_Voltage = 3.880;
 
 			// Read Curent Charge Register
-			uint8_t _Input_Source_Register = Read_Register(0x00);
-
-			// Set Mask
-			uint8_t _Voltage_Register = _Input_Source_Register & 0x87;
+			uint8_t _Input_Source_Register = Read_Register(0x00) & 0b10000111;
 
 			// Set Voltage Register
 			float _Voltage = _Input_Voltage - 3.880;
 			if (_Voltage >= 0.640) {
-				_Voltage_Register |= 0b01000000;
+				_Input_Source_Register |= 0b01000000;
 				_Voltage -= 0.640;
 			}
 			if (_Voltage >= 0.320) {
-				_Voltage_Register |= 0b00100000;
+				_Input_Source_Register |= 0b00100000;
 				_Voltage -= 0.320;
 			}
 			if (_Voltage >= 0.160) {
-				_Voltage_Register |= 0b00010000;
+				_Input_Source_Register |= 0b00010000;
 				_Voltage -= 0.160;
 			}
 			if (_Voltage >= 0.080) {
-				_Voltage_Register |= 0b00001000;
+				_Input_Source_Register |= 0b00001000;
 				_Voltage -= 0.080;
 			}
-
 			// Write Voltage Register
-			bool _Response = Write_Register(0x00, _Voltage_Register, true);
+			bool _Response = Write_Register(0x00, _Input_Source_Register, true);
 
 			// End Functions
 			return(_Response);
-
-		}
-
-		/**
-		 * @brief Input voltage limit get function.
-		 * @return float Input voltage limit value.
-		 */
-		float Get_Input_Voltage_Limit(void) {
-
-			// Read Curent Charge Register
-			uint8_t _Input_Source_Register = Read_Register(0x00);
-
-			// Control for Register Read
-			if (_Input_Source_Register == 0xFF) return(NAN);
-			
-			// Set Mask
-			uint8_t _Mask = _Input_Source_Register & 0x78;
-
-			// Set Charge Register
-			uint8_t _Voltage_Register = (_Mask / 100.0f) + 3.880;
-
-			// End Functions
-			return(_Voltage_Register);
 
 		}
 
@@ -589,54 +429,28 @@ class BQ24298 : public I2C_Functions {
 			if (_Minimum_Voltage <= 3.0) _Minimum_Voltage = 3.0;
 
 			// Read Register
-			uint8_t _Current_Register = Read_Register(0x01);
-
-			// Set Mask
-			uint8_t _Voltage_Register = _Current_Register & 0xF1;
+			uint8_t _Current_Register = Read_Register(0x01) & 0b11110001;
 
 			// Set Voltage Register
 			float _Voltage = _Minimum_Voltage - 3.00;
 			if (_Voltage >= 0.4) {
-				_Voltage_Register |= 0b00001000;
+				_Current_Register |= 0b00001000;
 				_Voltage -= 0.4;
 			}
 			if (_Voltage >= 0.2) {
-				_Voltage_Register |= 0b00000100;
+				_Current_Register |= 0b00000100;
 				_Voltage -= 0.2;
 			}
 			if (_Voltage >= 0.1) {
-				_Voltage_Register |= 0b00000010;
+				_Current_Register |= 0b00000010;
 				_Voltage -= 0.1;
 			}
 
 			// Write Voltage Register
-			bool _Response = Write_Register(0x01, _Voltage_Register, true);
+			bool _Response = Write_Register(0x01, _Current_Register, true);
 
 			// End Functions
 			return(_Response);
-
-		}
-
-		/**
-		 * @brief Minimum input voltage get function
-		 * @return float Minimum system voltage value.
-		 */
-		float Get_Minimum_System_Voltage(void) {
-
-			// Read Curent Charge Register
-			uint8_t _Input_Source_Register = Read_Register(0x01);
-
-			// Control for Register Read
-			if (_Input_Source_Register == 0xFF) return(NAN);
-			
-			// Set Mask
-			uint8_t _Mask = _Input_Source_Register & 0x0E;
-
-			// Set Charge Register
-			uint8_t _Voltage_Register = (_Mask / 20.0f) + 3.0f;
-
-			// End Functions
-			return(_Voltage_Register);
 
 		}
 
@@ -653,10 +467,7 @@ class BQ24298 : public I2C_Functions {
 			if (_Boost_Voltage <= 4.998) _Boost_Voltage = 4.998;
 
 			// Read Register
-			uint8_t _Register = Read_Register(0x06);
-
-			// Set Mask
-			_Register = _Register & 0xF0;
+			uint8_t _Register = Read_Register(0x06) & 0b00001111;
 
 			// Set Voltage Register
 			float _Voltage = _Boost_Voltage - 4.55;
@@ -694,23 +505,31 @@ class BQ24298 : public I2C_Functions {
 		bool Set_PreCharge_Current(float _PreCharge_Current) {
 
 			// Control for Function Variable
-			if (_PreCharge_Current > 2.048) _PreCharge_Current = 2.048;
-			if (_PreCharge_Current < 0.128) _PreCharge_Current = 0.128;
+			if (_PreCharge_Current >= 2.048) _PreCharge_Current = 2.048;
+			if (_PreCharge_Current <= 0.128) _PreCharge_Current = 0.128;
 
 			// Read Curent Charge Register
-			uint8_t _Current_PreCharge_Current_Control_Register = Read_Register(0x03);
+			uint8_t _Current_PreCharge_Current_Control_Register = Read_Register(0x03) & 0b00001111;
 
-			// Control for Register Read
-			if (_Current_PreCharge_Current_Control_Register == 0xFF) return(false);
-			
-			// Set Mask
-			uint8_t _Mask = _Current_PreCharge_Current_Control_Register & 0x0F;
-
-			// Set Charge Register
-			uint8_t _Charge_Register = (BQ_Round(((_PreCharge_Current - 0.128f) / 0.008f)) & 0xF0) | _Mask;
+			// Set Current Value
+			if (_PreCharge_Current == 0.128) _Current_PreCharge_Current_Control_Register |= 0b00010000;
+			if (_PreCharge_Current == 0.256) _Current_PreCharge_Current_Control_Register |= 0b00100000;
+			if (_PreCharge_Current == 0.384) _Current_PreCharge_Current_Control_Register |= 0b00110000;
+			if (_PreCharge_Current == 0.512) _Current_PreCharge_Current_Control_Register |= 0b01000000;
+			if (_PreCharge_Current == 0.768) _Current_PreCharge_Current_Control_Register |= 0b01010000;
+			if (_PreCharge_Current == 0.896) _Current_PreCharge_Current_Control_Register |= 0b01100000;
+			if (_PreCharge_Current == 1.024) _Current_PreCharge_Current_Control_Register |= 0b01110000;
+			if (_PreCharge_Current == 1.152) _Current_PreCharge_Current_Control_Register |= 0b10000000;
+			if (_PreCharge_Current == 1.280) _Current_PreCharge_Current_Control_Register |= 0b10010000;
+			if (_PreCharge_Current == 1.408) _Current_PreCharge_Current_Control_Register |= 0b10100000;
+			if (_PreCharge_Current == 1.536) _Current_PreCharge_Current_Control_Register |= 0b10110000;
+			if (_PreCharge_Current == 1.664) _Current_PreCharge_Current_Control_Register |= 0b11000000;
+			if (_PreCharge_Current == 1.792) _Current_PreCharge_Current_Control_Register |= 0b11010000;
+			if (_PreCharge_Current == 1.920) _Current_PreCharge_Current_Control_Register |= 0b11100000;
+			if (_PreCharge_Current == 2.048) _Current_PreCharge_Current_Control_Register |= 0b11110000;
 
 			// Write Charge Register
-			bool _Response = Write_Register(0x03, _Charge_Register, false);
+			bool _Response = Write_Register(0x03, _Current_PreCharge_Current_Control_Register, true);
 
 			// End Functions
 			return(_Response);
@@ -753,54 +572,28 @@ class BQ24298 : public I2C_Functions {
 			if (_Term_Charge_Current <= 0.128) _Term_Charge_Current = 0.128;
 
 			// Read Curent Charge Register
-			uint8_t _Current_Data = Read_Register(0x03);
-
-			// Set Mask
-			uint8_t _Mask = _Current_Data & 0xF0;
+			uint8_t _Current_Data = Read_Register(0x03) & 0b11111000;
 
 			// Set Current Register
 			float _Current = _Term_Charge_Current - 0.128;
 			if (_Current >= 0.512) {
-				_Mask |= 0b00000100;
+				_Current_Data |= 0b00000100;
 				_Current -= 0.512;
 			}
 			if (_Current >= 0.256) {
-				_Mask |= 0b00000010;
+				_Current_Data |= 0b00000010;
 				_Current -= 0.256;
 			}
 			if (_Current >= 0.128) {
-				_Mask |= 0b00000001;
+				_Current_Data |= 0b00000001;
 				_Current -= 0.128;
 			}
 
 			// Write Charge Register
-			bool _Response = Write_Register(0x03, _Mask, true);
+			bool _Response = Write_Register(0x03, _Current_Data, true);
 
 			// End Functions
 			return(_Response);
-
-		}
-
-		/**
-		 * @brief Charge termination current get function.
-		 * @return float Charge termination current value.
-		 */
-		float Get_TermCharge_Current(void) {
-
-			// Read Curent Charge Register
-			uint8_t _Current_Data = Read_Register(0x03);
-
-			// Control for Register Read
-			if (_Current_Data == 0xFF) return(NAN);
-			
-			// Set Mask
-			uint8_t _Mask = _Current_Data & 0x0F;
-
-			// Set Charge Register
-			float _Data = (_Mask * 0.128f) + 0.128f;
-
-			// End Functions
-			return(_Data);
 
 		}
 
@@ -837,41 +630,18 @@ class BQ24298 : public I2C_Functions {
 		}
 
 		/**
-		 * @brief Thermal regulation temperature get function.
-		 * @return int Regulation temperature value.
-		 */
-		int Get_Thermal_Regulation_Temperature() {
-
-			// Read Curent Charge Register
-			uint8_t _Current_Data = Read_Register(0x06);
-
-			// Control for Register Read
-			if (_Current_Data == 0xFF) return(0);
-			
-			// Set Mask
-			uint8_t _Mask = _Current_Data & 0x03;
-
-			// Set Charge Register
-			float _Data = (_Mask * 20) + 60;
-
-			// End Functions
-			return(_Data);
-
-		}
-
-		/**
 		 * @brief Battery FET disable function.
 		 * @param _State FET status value.
 		 * @return true Function success.
 		 * @return false Function not success.
 		 */
-		bool BATFET_Disable_Bit(bool _State) {
+		bool BATFET(bool State) {
 
 			// Declare Variable
 			bool _Response = false;
 
-			if (!_State) _Response = Clear_Register_Bit(0x07, 5, true);
-			if (_State) _Response = Set_Register_Bit(0x07, 5, true);
+			if (!State) _Response = Clear_Register_Bit(0x07, 5, true);
+			if (State) _Response = Set_Register_Bit(0x07, 5, true);
 
 			// End Function
 			return(_Response);
@@ -1011,31 +781,59 @@ class BQ24298 : public I2C_Functions {
 		 */
 		bool Set_Watchdog(uint8_t _Timer) {
 
+			// Read Curent Charge Register
+			uint8_t _Current_Register = Read_Register(0x05) & 0b11001111;
+
+			// Handle Timer
+			if (_Timer == 1) { // 40 sn
+
+				// Write Voltage Register
+				bool _Response = Write_Register(0x05, (_Current_Register | 0b00010000), true);
+
+				// End Functions
+				return(_Response);
+
+			} else if (_Timer == 2) { // 80 sn
+
+				// Write Voltage Register
+				bool _Response = Write_Register(0x05, (_Current_Register | 0b00100000), true);
+
+				// End Functions
+				return(_Response);
+
+			} else if (_Timer == 3) { // 160 sn
+
+				// Write Voltage Register
+				bool _Response = Write_Register(0x05, (_Current_Register | 0b00110000), true);
+
+				// End Functions
+				return(_Response);
+
+			}
+
+			// End Functions
+			return(false);
+
+		}
+
+		/**
+		 * @brief Disable battery over heat fault function.
+		 * @return true Function success.
+		 * @return false Function not success.
+		 */
+		bool Disable_BHOT(void) {
+
 			// Declare Register
 			uint8_t _Register;
 
 			// Read Curent Charge Register
-			uint8_t _Current_Register = Read_Register(0x05);
+			uint8_t _Current_Register = Read_Register(0x06);
 
 			// Handle Timer
-			if (_Timer == 0) { // Disable
-				_Register = _Current_Register & 0b11001111;
-			}
-			if (_Timer == 1) { // 40 sn
-				_Register = _Current_Register & 0b11001111;
-				_Register = _Current_Register | 0b00010000;
-			}
-			if (_Timer == 2) { // 80 sn
-				_Register = _Current_Register & 0b11001111;
-				_Register = _Current_Register | 0b00100000;
-			}
-			if (_Timer == 3) { // 160 sn
-				_Register = _Current_Register & 0b11001111;
-				_Register = _Current_Register | 0b00110000;
-			}
+			_Register = _Current_Register | 0b00001111;
 
 			// Write Voltage Register
-			bool _Response = Write_Register(0x05, _Register, true);
+			bool _Response = Write_Register(0x06, _Register, true);
 
 			// End Functions
 			return(_Response);
@@ -1049,52 +847,57 @@ class BQ24298 : public I2C_Functions {
 		 * @param _Multiplexer_Enable I2C device multiplexer enable.
 		 * @param _Multiplexer_Channel I2C device multiplexer channel.
 		 */
-		BQ24298(bool _Multiplexer_Enable, uint8_t _Multiplexer_Channel) : I2C_Functions(__I2C_Addr_BQ24298__, _Multiplexer_Enable, _Multiplexer_Channel) {
+		BQ24298(bool _Boot, bool _Multiplexer_Enable, uint8_t _Multiplexer_Channel) : I2C_Functions(__I2C_Addr_BQ24298__, _Multiplexer_Enable, _Multiplexer_Channel) {
 
-			// Check PMIC Version
-			uint8_t _Version = Read_Register(0x0A);
+			// Boot
+			if (_Boot) {
 
-			// Control for Version
-			if (_Version == 0x24) {
+				// Check PMIC Version
+				uint8_t _Version = Read_Register(0x0A);
 
-				// Set Charger Input Current Limit		
-				this->Set_Input_Current_Limit(_BQ24298_Input_Current_Limit_);
-				
-				// Set Charger Input Voltage Limit
-				this->Set_Input_Voltage_Limit(_BQ24298_Input_Voltage_Limit_);
-				
-				// Set Minimum System Voltage
-				this->Set_Minimum_System_Voltage(_BQ24298_Min_System_Voltage_);
+				// Control for Version
+				if (_Version == 0x24) {
 
-				// Set Charge Voltage
-				this->Set_Charge_Voltage(_BQ24298_Charge_Voltage_);
-				
-				// Disable Boost Temperature
-				this->Disable_BHOT();
+					// Set Charge Current
+					this->Set_Charge_Current(2.048);
 
-				// Set Charge Current
-				this->Set_Charge_Current(_BQ24298_Charge_Current_);
+					// Set Charge Voltage
+					this->Set_Charge_Voltage(4.208);
 
-				// Set Charge Termination Current
-				this->Set_TermCharge_Current(_BQ24298_Charge_Term_Current_);
+					// Set Charger Input Current Limit		
+					this->Set_Input_Current_Limit(3.000);
 
-				// Disable Watchdog
-				this->Set_Watchdog(_BQ24298_Watchdog_);
-				
-				// Enable BatFet
-				this->BATFET_Disable_Bit(_BQ24298_BatFet_Disable_);
+					// Set Charger Input Voltage Limit
+					this->Set_Input_Voltage_Limit(4.360);
 
-				// Enable Charge
-				this->Enable_Charge();
+					// Set Minimum System Voltage
+					this->Set_Minimum_System_Voltage(3.700);
 
-				// Set Boost Voltage
-				this->Set_Boost_Voltage(_BQ24298_Boost_Voltage_);
+					// Set Boost Voltage
+					this->Set_Boost_Voltage(4.200);
 
-				// Enable Boost
-				this->Enable_Boost_Mode();
+					// Set Pre Charge Current
+					this->Set_PreCharge_Current(0.256);
 
-				// Disable OTG
-				this->Disable_OTG();
+					// Set Charge Termination Current
+					this->Set_TermCharge_Current(0.128);
+
+					// Enable Boost
+					this->Enable_Boost_Mode();
+					
+					// Enable Charge
+					this->Enable_Charge();
+
+					// Disable Watchdog
+					this->Set_Watchdog(0);
+
+					// Disable Boost Temperature
+					this->Disable_BHOT();
+					
+					// Disable OTG
+					this->OTG(false);
+
+				}
 
 			}
 		
@@ -1110,6 +913,8 @@ class BQ24298 : public I2C_Functions {
 			// Get Bit Value
 			bool _Response = Read_Register_Bit(0x08, 2);
 			
+//			Serial.print(_Response, BIN);
+
 			// End Function
 			return(_Response);
 
@@ -1224,19 +1029,316 @@ class BQ24298 : public I2C_Functions {
 		 * @brief Battery NTC fault get function.
 		 * @return uint8_t NTC fault value.
 		 */
-		uint8_t NTC_FAULT() {
+		bool NTC_FAULT() {
 
-			// Read Curent Charge Register
-			uint8_t _Current_Data = Read_Register(0x09);
+			// Get Bit Value
+			bool _Response_0 = Read_Register_Bit(0x09, 0);
 
-			// Control for Register Read
-			if (_Current_Data == 0xFF) return(false);
-
-			// Control for OTG
-			if (!Disable_OTG()) return(false);
+			// Get Bit Value
+			bool _Response_1 = Read_Register_Bit(0x09, 01);
 
 			// End Function
-			return (_Current_Data & 0x07);
+			return (_Response_0 and _Response_1);
+
+		}
+
+		/**
+		 * @brief Get charge current.
+		 * @return float Charge current.
+		 */
+		float Get_Charge_Current(void) {
+
+			// Read Current Register
+			uint8_t _Charge_Register = Read_Register(0x06);
+
+			// Declare Variable
+			float _Charge_Current = 0.512;
+
+			// Set Value
+			if (bitRead(_Charge_Register, 2)) _Charge_Current += 0.064;
+			if (bitRead(_Charge_Register, 3)) _Charge_Current += 0.128;
+			if (bitRead(_Charge_Register, 4)) _Charge_Current += 0.256;
+			if (bitRead(_Charge_Register, 5)) _Charge_Current += 0.512;
+			if (bitRead(_Charge_Register, 6)) _Charge_Current += 1.024;
+			if (bitRead(_Charge_Register, 7)) _Charge_Current += 2.048;
+
+			// End Functions
+			return(_Charge_Current);
+
+		}
+
+		/**
+		 * @brief Get charge voltage.
+		 * @return float Charge voltage.
+		 */
+		float Get_Charge_Voltage(void) {
+
+			// Read Curent Charge Register
+			uint8_t _Current_Charge_Voltage_Control_Register = Read_Register(0x04);
+
+			// Control for Register Read
+			if (_Current_Charge_Voltage_Control_Register == 0xFF) return(NAN);
+			
+			// Set Mask
+			uint8_t _Mask = _Current_Charge_Voltage_Control_Register & 0xFC;
+
+			// Set Charge Register
+			float _Charge_Voltage_Control_Register = (_Mask * 0.004f) + 3.504f;
+
+			// End Functions
+			return(_Charge_Voltage_Control_Register);
+
+		}
+
+		/**
+		 * @brief Input current get function.
+		 * @return float Input current value.
+		 */
+		float Get_Input_Current_Limit(void) {
+
+			// Read Curent Charge Register
+			uint8_t _Input_Source_Register = Read_Register(0x00);
+
+			// Set Mask
+			uint8_t _Mask = _Input_Source_Register & 0b00000111;
+
+			// Decide Response
+			switch (_Mask) {
+				case 0x00:
+					return(0.100);
+				case 0x01:
+					return(0.150);
+				case 0x02:
+					return(0.500);
+				case 0x03:
+					return(0.900);
+				case 0x04:
+					return(1.200);
+				case 0x05:
+					return(1.500);
+				case 0x06:
+					return(2.000);
+				case 0x07:
+					return(3.000);
+				default:
+					return NAN;
+			}
+
+			// End Function
+			return(0);
+
+		}
+
+		/**
+		 * @brief Input voltage limit get function.
+		 * @return float Input voltage limit value.
+		 */
+		float Get_Input_Voltage_Limit(void) {
+
+			// Read Curent Charge Register
+			uint8_t _Input_Source_Register = Read_Register(0x00);
+			
+			// Set Voltage Variable
+			float _Voltage = 3.88;
+
+			// Set Value
+			if (bitRead(_Input_Source_Register, 3)) _Voltage += 0.080;
+			if (bitRead(_Input_Source_Register, 4)) _Voltage += 0.160;
+			if (bitRead(_Input_Source_Register, 5)) _Voltage += 0.320;
+			if (bitRead(_Input_Source_Register, 6)) _Voltage += 0.640;
+
+			// End Functions
+			return(_Voltage);
+
+		}
+
+		/**
+		 * @brief Minimum input voltage get function
+		 * @return float Minimum system voltage value.
+		 */
+		float Get_Minimum_System_Voltage(void) {
+
+			// Read Curent Charge Register
+			uint8_t _Input_Source_Register = Read_Register(0x01);
+			
+			// Set Voltage Variable
+			float _Voltage = 3.00;
+
+			// Set Value
+			if (bitRead(_Input_Source_Register, 1)) _Voltage += 0.1;
+			if (bitRead(_Input_Source_Register, 2)) _Voltage += 0.2;
+			if (bitRead(_Input_Source_Register, 3)) _Voltage += 0.4;
+
+			// End Functions
+			return(_Voltage);
+
+		}
+
+		/**
+		 * @brief Boost voltage get function
+		 * @return float boost voltage value.
+		 */
+		float Get_Boost_Voltage(void) {
+
+			// Read Curent Charge Register
+			uint8_t _Input_Source_Register = Read_Register(0x06);
+			
+			// Set Voltage Variable
+			float _Voltage = 4.55;
+
+			// Set Value
+			if (bitRead(_Input_Source_Register, 4)) _Voltage += 0.064;
+			if (bitRead(_Input_Source_Register, 5)) _Voltage += 0.128;
+			if (bitRead(_Input_Source_Register, 6)) _Voltage += 0.256;
+			if (bitRead(_Input_Source_Register, 7)) _Voltage += 0.512;
+
+			// End Functions
+			return(_Voltage);
+
+		}
+
+		/**
+		 * @brief PreCharge current get function.
+		 * @return float precharge current value.
+		 */
+		float Get_PreCharge_Current_Limit(void) {
+
+			// Read Curent Charge Register
+			uint8_t _Input_Source_Register = Read_Register(0x03);
+
+			// Set Mask
+			uint8_t _Mask = _Input_Source_Register & 0b11110000;
+
+			// Decide Response
+			switch (_Mask) {
+				case 0b00000000:
+					return(0.128);
+				case 0b00010000:
+					return(0.128);
+				case 0b00100000:
+					return(0.256);
+				case 0b00110000:
+					return(0.384);
+				case 0b01000000:
+					return(0.512);
+				case 0b01010000:
+					return(0.768);
+				case 0b01100000:
+					return(0.896);
+				case 0b01110000:
+					return(1.024);
+				case 0b10000000:
+					return(1.152);
+				case 0b10010000:
+					return(1.280);
+				case 0b10100000:
+					return(1.408);
+				case 0b10110000:
+					return(1.536);
+				case 0b11000000:
+					return(1.664);
+				case 0b11010000:
+					return(1.792);
+				case 0b11100000:
+					return(1.920);
+				case 0b11110000:
+					return(2.048);
+				default:
+					return NAN;
+			}
+
+			// End Function
+			return(0);
+
+		}
+
+		/**
+		 * @brief Charge termination current get function.
+		 * @return float Charge termination current value.
+		 */
+		float Get_ChargeTerm_Current(void) {
+
+			// Read Curent Charge Register
+			uint8_t _Current_Data = Read_Register(0x03) & 0b11111000;
+
+			// Set Voltage Variable
+			float _Current = 0.128;
+
+			// Set Value
+			if (bitRead(_Current_Data, 0)) _Current += 0.128;
+			if (bitRead(_Current_Data, 1)) _Current += 0.256;
+			if (bitRead(_Current_Data, 2)) _Current += 0.512;
+
+			// End Functions
+			return(_Current);
+
+		}
+
+		/**
+		 * @brief Thermal regulation temperature get function.
+		 * @return int Regulation temperature value.
+		 */
+		float Get_Thermal_Regulation_Temperature() {
+
+			// Read Curent Charge Register
+			uint8_t _Current_Data = Read_Register(0x06);
+
+			// Control for Register Read
+			if (_Current_Data == 0xFF) return(0);
+			
+			// Set Mask
+			uint8_t _Mask = _Current_Data & 0x03;
+
+			// Set Charge Register
+			float _Data = (_Mask * 20) + 60;
+
+			// End Functions
+			return(_Data);
+
+		}
+
+		/**
+		 * @brief Get buck state
+		 * @return true Function success.
+		 * @return false Function not success.
+		 */
+		bool Get_Buck_State(void) {
+
+			// Get Bit
+			bool Stat = Read_Register_Bit(0x00, 7);
+
+			// End Function
+			return(Stat);
+
+		}
+
+		/**
+		 * @brief Get OTG state
+		 * @return true Function success.
+		 * @return false Function not success.
+		 */
+		bool Get_OTG_State(void) {
+
+			// Get Bit
+			bool Stat = Read_Register_Bit(0x01, 5);
+
+			// End Function
+			return(Stat);
+
+		}
+
+		/**
+		 * @brief Get BATFET state
+		 * @return true Function success.
+		 * @return false Function not success.
+		 */
+		bool Get_BATFET_State(void) {
+
+			// Get Bit
+			bool Stat = Read_Register_Bit(0x07, 5);
+
+			// End Function
+			return(Stat);
 
 		}
 
@@ -1283,30 +1385,6 @@ class BQ24298 : public I2C_Functions {
 
 			// End Function
 			return (_Status);
-
-		}
-
-		/**
-		 * @brief Disable battery over heat fault function.
-		 * @return true Function success.
-		 * @return false Function not success.
-		 */
-		bool Disable_BHOT(void) {
-
-			// Declare Register
-			uint8_t _Register;
-
-			// Read Curent Charge Register
-			uint8_t _Current_Register = Read_Register(0x06);
-
-			// Handle Timer
-			_Register = _Current_Register | 0b00001111;
-
-			// Write Voltage Register
-			bool _Response = Write_Register(0x06, _Register, true);
-
-			// End Functions
-			return(_Response);
 
 		}
 
