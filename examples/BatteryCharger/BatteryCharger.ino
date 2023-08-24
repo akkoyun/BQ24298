@@ -1,50 +1,31 @@
 #include <BQ24298.h>
 
+// Create Charger Object
+BQ24298 Charger(true, __B108AA_MUX_Power__);
+
 void setup() {
 
 	// Start Serial
 	Serial.begin(115200);
 
-	// Set Multiplexer
-	I2C.Set_Multiplexer(0x70, 5);
-
-	// Control for Charger
-	Charger.begin();
-//	if (!Charger.begin()) {
-//		Serial.println("Failed to initialize PMIC!");
-//		while (1);
-//	}
+	// Start I2C Communication
+	Charger.Begin();
 
 }
 
 void loop() {
 
-
-	//if (Charger.Can_Run_On_Battery()) Serial.println(Charger.Charge_Status(), HEX);
-
-	if (!Charger.PG_STAT()) Serial.println("Power Not Good");
-	if (Charger.THERM_STAT()) Serial.println("Thermal Hot!");
-	if (!Charger.DPM_STAT()) Serial.println("DPM False");
-	if (Charger.WATCHDOG_FAULT()) Serial.println("Watchdog expired");
-	if (Charger.VSYS_STAT() == 1) {Serial.println("BAT < VSYSMIN");} else {Serial.println("BAT > VSYSMIN");}
-	
-	Serial.println(Charger.Get_Fault_Register(), HEX);
-
-	switch (Charger.Charge_Status()) {
-	case 1:
-		Serial.println("Pre-Charge");
-		break;
-	case 2:
-		Serial.println("Fast Charge");
-		break;
-	case 3:
-		Serial.println("Charge Complate");
-		break;
-	default:
-		Serial.println("Not Charging");
-		break;
-	}
-
+	// Print Diagnostic
+	Serial.print("PG Stat             : "); if (!Charger.PG_STAT()) {Serial.println("Power Not Good");} else {Serial.println("Power Good");};
+	Serial.print("Therm Stat          : "); if (Charger.THERM_STAT()) {Serial.println("Thermal Hot!"); } else {Serial.println("Normal");};
+	Serial.print("DPM Stat            : "); if (!Charger.DPM_STAT()) {Serial.println("DPM Pasive"); } else {Serial.println("DPM Active");};
+	Serial.print("WatchDog Fault      : "); if (Charger.WATCHDOG_FAULT()) {Serial.println("Watchdog expired"); } else {Serial.println("Normal");};
+	Serial.print("Battery OVP         : "); if (Charger.BAT_OVP_FAULT()) {Serial.println("Bat OVP"); } else {Serial.println("Normal");};
+	Serial.print("System Voltage Stat : "); if (Charger.VSYS_STAT()) {Serial.println("BAT < VSYSMIN"); } else {Serial.println("BAT > VSYSMIN");};
+	Serial.print("Bat LowV            : "); if (Charger.BATLOWV()) {Serial.println("3V0"); } else {Serial.println("2V8");};
+	Serial.print("Bat Cold            : "); if (Charger.BCOLD()) {Serial.println("BCold True"); } else {Serial.println("Normal");};
+	Serial.print("NTC Fault           : "); if (Charger.BCOLD()) {Serial.println("Fault"); } else {Serial.println("Normal");};
+	Serial.print("Input Voltage Stat  : "); 
 	switch (Charger.VBUS_STAT()) {
 	case 1:
 		Serial.println("USB");
@@ -59,7 +40,27 @@ void loop() {
 		Serial.println("Unknown");
 		break;
 	}
+	Serial.print("Charge Status       : "); 
+	switch (Charger.Charge_Status()) {
+	case 1:
+		Serial.println("Pre-Charge");
+		break;
+	case 2:
+		Serial.println("Fast Charge");
+		break;
+	case 3:
+		Serial.println("Charge Complate");
+		break;
+	default:
+		Serial.println("Not Charging");
+		break;
+	}
+	Serial.print("Fault register      : 0x"); Serial.print(Charger.Get_Fault_Register(), HEX); Serial.println("");
+	Serial.println("----------------------------------"); 
 
-	delay(1000);
+	// Reset Watchdog
+	Charger.Reset_Watchdog();
+
+	delay(3000);
 
 }
