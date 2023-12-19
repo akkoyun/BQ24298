@@ -26,15 +26,35 @@
 	#endif
 
 	// Define Charger Parameters
-	#define _BQ24298_Charge_Voltage_		4.3		// Charge voltage
-	#define _BQ24298_Input_Current_Limit_	1.0		// Input current limit
-	#define _BQ24298_Input_Voltage_Limit_	5.08	// Input valtage limit
-	#define _BQ24298_Min_System_Voltage_	4.0		// Minimum system voltage 
-	#define _BQ24298_Charge_Term_Current_	0.128	// Charge termination current limit
-	#define _BQ24298_Watchdog_				0		// Watchdog timer value
-	#define _BQ24298_BatFet_Disable_		false	// Battery FET disable value
-	#define _BQ24298_Boost_Voltage_			4.55	// Boost voltage
+	#ifndef _BQ24298_Charge_Current_
+		#define _BQ24298_Charge_Current_ 		2.048	// Charge current
+	#endif
+	#ifndef _BQ24298_Charge_Voltage_
+		#define _BQ24298_Charge_Voltage_		4.208	// Charge voltage
+	#endif
+	#ifndef _BQ24298_Input_Current_Limit_
+		#define _BQ24298_Input_Current_Limit_	3.0		// Input current limit
+	#endif
+	#ifndef _BQ24298_Input_Voltage_Limit_
+		#define _BQ24298_Input_Voltage_Limit_	5.08	// Input valtage limit
+	#endif
+	#ifndef _BQ24298_Min_System_Voltage_
+		#define _BQ24298_Min_System_Voltage_	3.8		// Minimum system voltage 
+	#endif
+	#ifndef _BQ24298_Boost_Voltage_
+		#define _BQ24298_Boost_Voltage_			4.20	// Boost voltage
+	#endif
+	#ifndef _BQ24298_PreCharge_Current_
+		#define _BQ24298_PreCharge_Current_		0.256	// Pre charge current
+	#endif
+	#ifndef _BQ24298_Charge_Term_Current_
+		#define _BQ24298_Charge_Term_Current_	0.128	// Charge termination current limit
+	#endif
+	#ifndef _BQ24298_Watchdog_
+		#define _BQ24298_Watchdog_				0		// Watchdog timer value
+	#endif
 
+	// Charger Class
 	class BQ24298 : public I2C_Functions {
 
 		private:
@@ -711,60 +731,76 @@
 		public:
 
 			// Construct a new BQ24298 object
-			BQ24298(bool _Multiplexer_Enable, uint8_t _Multiplexer_Channel) : I2C_Functions(__I2C_Addr_BQ24298__, _Multiplexer_Enable, _Multiplexer_Channel) {
+			BQ24298(bool _Multiplexer_Enable = false, uint8_t _Multiplexer_Channel = 0) : I2C_Functions(__I2C_Addr_BQ24298__, _Multiplexer_Enable, _Multiplexer_Channel) {
 			
 			}
 
 			// Begin Function
-			void Begin(void) {
+			bool Begin(void) {
 
-				// Begin I2C Communication
+				// Start I2C
 				I2C_Functions::Begin();
 
-				// Check PMIC Version
-				uint8_t _Version = Read_Register(0x0A);
+				// Control for Device
+				if (I2C_Functions::Variables.Device.Detect) {
 
-				// Control for Version
-				if (_Version == 0x24) {
+					// Check PMIC Version
+					uint8_t _Version = Read_Register(0x0A);
 
-					// Set Charge Current
-					this->Set_Charge_Current(2.048);
+					// Control for Version
+					if (_Version == 0x24) {
 
-					// Set Charge Voltage
-					this->Set_Charge_Voltage(4.208);
+						// Set Charge Current
+						this->Set_Charge_Current(_BQ24298_Charge_Current_);
 
-					// Set Charger Input Current Limit		
-					this->Set_Input_Current_Limit(3.000);
+						// Set Charge Voltage
+						this->Set_Charge_Voltage(_BQ24298_Charge_Voltage_);
 
-					// Set Charger Input Voltage Limit
-					this->Set_Input_Voltage_Limit(4.360);
+						// Set Charger Input Current Limit		
+						this->Set_Input_Current_Limit(_BQ24298_Input_Current_Limit_);
 
-					// Set Minimum System Voltage
-					this->Set_Minimum_System_Voltage(3.700);
+						// Set Charger Input Voltage Limit
+						this->Set_Input_Voltage_Limit(_BQ24298_Input_Voltage_Limit_);
 
-					// Set Boost Voltage
-					this->Set_Boost_Voltage(4.200);
+						// Set Minimum System Voltage
+						this->Set_Minimum_System_Voltage(_BQ24298_Min_System_Voltage_);
 
-					// Set Pre Charge Current
-					this->Set_PreCharge_Current(0.256);
+						// Set Boost Voltage
+						this->Set_Boost_Voltage(_BQ24298_Boost_Voltage_);
 
-					// Set Charge Termination Current
-					this->Set_TermCharge_Current(0.128);
+						// Set Pre Charge Current
+						this->Set_PreCharge_Current(_BQ24298_PreCharge_Current_);
 
-					// Enable Boost
-					this->Enable_Boost_Mode();
-					
-					// Enable Charge
-					this->Enable_Charge();
+						// Set Charge Termination Current
+						this->Set_TermCharge_Current(_BQ24298_Charge_Term_Current_);
 
-					// Disable Watchdog
-					this->Set_Watchdog(0);
+						// Enable Boost
+						this->Enable_Boost_Mode();
+						
+						// Enable Charge
+						this->Enable_Charge();
 
-					// Disable Boost Temperature
-					this->Disable_BHOT();
-					
-					// Disable OTG
-					this->OTG(false);
+						// Disable Watchdog
+						this->Set_Watchdog(_BQ24298_Watchdog_);
+
+						// Disable Boost Temperature
+						this->Disable_BHOT();
+						
+						// Disable OTG
+						this->OTG(false);
+
+						// End Function
+						return(true);
+
+					}
+
+					// End Function
+					return(false);
+
+				} else {
+
+					// End Function
+					return(false);
 
 				}
 
