@@ -705,46 +705,18 @@
 			// Set charge current.
 			bool Set_Charge_Current(float _Charge_Current) {
 
-				// Read Current Register
-				uint8_t _Charge_Register = Read_Register(0x02) & 0b00000011;
+				// Read Curent Charge Register
+				uint8_t _Charge_Register = I2C_Functions::Read_Register(0x02) & 0b00000011;
 
-				// Serial.println(_Charge_Register, BIN);
-
-				// Handel Data
-				if (_Charge_Current >= 2.048) {
-					_Charge_Register |= 0b10000000;
-					_Charge_Current -= 2.048;
-				}
-				if (_Charge_Current >= 1.024) {
-					_Charge_Register |= 0b01000000;
-					_Charge_Current -= 1.024;
-				}
-				if (_Charge_Current >= 0.512) {
-					_Charge_Register |= 0b00100000;
-					_Charge_Current -= 0.512;
-				}
-				if (_Charge_Current >= 0.256) {
-					_Charge_Register |= 0b00010000;
-					_Charge_Current -= 0.256;
-				}
-				if (_Charge_Current >= 0.128) {
-					_Charge_Register |= 0b00001000;
-					_Charge_Current -= 0.128;
-				}
-				if (_Charge_Current >= 0.064) {
-					_Charge_Register |= 0b00000100;
-					_Charge_Current -= 0.064;
-				}
-
-				// Serial.println(_Charge_Register, BIN);
+				if (_Charge_Current >= 2.048) {_Charge_Register |= 0b10000000; _Charge_Current -= 2.048;}
+				if (_Charge_Current >= 1.024) {_Charge_Register |= 0b01000000; _Charge_Current -= 1.024;}
+				if (_Charge_Current >= 0.512) {_Charge_Register |= 0b00100000; _Charge_Current -= 0.512;}
+				if (_Charge_Current >= 0.256) {_Charge_Register |= 0b00010000; _Charge_Current -= 0.256;}
+				if (_Charge_Current >= 0.128) {_Charge_Register |= 0b00001000; _Charge_Current -= 0.128;}
+				if (_Charge_Current >= 0.064) {_Charge_Register |= 0b00000100;}
 
 				// Write Charge Register
-				bool _Response = Write_Register(0x02, _Charge_Register, true);
-
-				// Serial.println(_Response);
-
-				// End Functions
-				return(_Response);
+				return I2C_Functions::Write_Register(0x02, _Charge_Register, true);
 
 			}
 
@@ -759,30 +731,12 @@
 
 				// Set Voltage Register
 				float _Voltage = _Charge_Voltage - 3.504;
-				if (_Voltage >= 0.512) {
-					_Voltage_Register |= 0b10000000;
-					_Voltage -= 0.512;
-				}
-				if (_Voltage >= 0.256) {
-					_Voltage_Register |= 0b01000000;
-					_Voltage -= 0.256;
-				}
-				if (_Voltage >= 0.128) {
-					_Voltage_Register |= 0b00100000;
-					_Voltage -= 0.128;
-				}
-				if (_Voltage >= 0.064) {
-					_Voltage_Register |= 0b00010000;
-					_Voltage -= 0.064;
-				}
-				if (_Voltage >= 0.032) {
-					_Voltage_Register |= 0b00001000;
-					_Voltage -= 0.032;
-				}
-				if (_Voltage >= 0.016) {
-					_Voltage_Register |= 0b00000100;
-					_Voltage -= 0.016;
-				}
+				if (_Voltage >= 0.512) {_Voltage_Register |= 0b10000000; _Voltage -= 0.512;}
+				if (_Voltage >= 0.256) {_Voltage_Register |= 0b01000000; _Voltage -= 0.256;}
+				if (_Voltage >= 0.128) {_Voltage_Register |= 0b00100000; _Voltage -= 0.128;}
+				if (_Voltage >= 0.064) {_Voltage_Register |= 0b00010000; _Voltage -= 0.064;}
+				if (_Voltage >= 0.032) {_Voltage_Register |= 0b00001000; _Voltage -= 0.032;}
+				if (_Voltage >= 0.016) {_Voltage_Register |= 0b00000100;}
 
 				// Write Voltage Register
 				bool _Response = Write_Register(0x04, _Voltage_Register, true);
@@ -824,22 +778,10 @@
 
 				// Set Voltage Register
 				float _Voltage = _Input_Voltage - 3.880;
-				if (_Voltage >= 0.640) {
-					_Input_Source_Register |= 0b01000000;
-					_Voltage -= 0.640;
-				}
-				if (_Voltage >= 0.320) {
-					_Input_Source_Register |= 0b00100000;
-					_Voltage -= 0.320;
-				}
-				if (_Voltage >= 0.160) {
-					_Input_Source_Register |= 0b00010000;
-					_Voltage -= 0.160;
-				}
-				if (_Voltage >= 0.080) {
-					_Input_Source_Register |= 0b00001000;
-					_Voltage -= 0.080;
-				}
+				if (_Voltage >= 0.640) {_Input_Source_Register |= 0b01000000; _Voltage -= 0.640;}
+				if (_Voltage >= 0.320) {_Input_Source_Register |= 0b00100000; _Voltage -= 0.320;}
+				if (_Voltage >= 0.160) {_Input_Source_Register |= 0b00010000; _Voltage -= 0.160;}
+				if (_Voltage >= 0.080) {_Input_Source_Register |= 0b00001000;}
 				
 				// Write Voltage Register
 				bool _Response = Write_Register(0x00, _Input_Source_Register, true);
@@ -857,18 +799,9 @@
 
 				// Set Voltage Register
 				float _Voltage = _Minimum_Voltage - 3.00;
-				if (_Voltage >= 0.4) {
-					_Current_Register |= 0b00001000;
-					_Voltage -= 0.4;
-				}
-				if (_Voltage >= 0.2) {
-					_Current_Register |= 0b00000100;
-					_Voltage -= 0.2;
-				}
-				if (_Voltage >= 0.1) {
-					_Current_Register |= 0b00000010;
-					_Voltage -= 0.1;
-				}
+				if (_Voltage >= 0.4) {_Current_Register |= 0b00001000; _Voltage -= 0.4;}
+				if (_Voltage >= 0.2) {_Current_Register |= 0b00000100; _Voltage -= 0.2;}
+				if (_Voltage >= 0.1) {_Current_Register |= 0b00000010;}
 
 				// Write Voltage Register
 				bool _Response = Write_Register(0x01, _Current_Register, true);
@@ -886,22 +819,10 @@
 
 				// Set Voltage Register
 				float _Voltage = _Boost_Voltage - 4.55;
-				if (_Voltage >= 0.512) {
-					_Register |= 0b10000000;
-					_Voltage -= 0.512;
-				}
-				if (_Voltage >= 0.256) {
-					_Register |= 0b01000000;
-					_Voltage -= 0.256;
-				}
-				if (_Voltage >= 0.128) {
-					_Register |= 0b00100000;
-					_Voltage -= 0.128;
-				}
-				if (_Voltage >= 0.064) {
-					_Register |= 0b00010000;
-					_Voltage -= 0.064;
-				}
+				if (_Voltage >= 0.512) {_Register |= 0b10000000; _Voltage -= 0.512;}
+				if (_Voltage >= 0.256) {_Register |= 0b01000000; _Voltage -= 0.256;}
+				if (_Voltage >= 0.128) {_Register |= 0b00100000; _Voltage -= 0.128;}
+				if (_Voltage >= 0.064) {_Register |= 0b00010000;}
 
 				// Write Voltage Register
 				bool _Response = Write_Register(0x06, _Register, true);
@@ -970,18 +891,9 @@
 
 				// Set Current Register
 				float _Current = _Term_Charge_Current - 0.128;
-				if (_Current >= 0.512) {
-					_Current_Data |= 0b00000100;
-					_Current -= 0.512;
-				}
-				if (_Current >= 0.256) {
-					_Current_Data |= 0b00000010;
-					_Current -= 0.256;
-				}
-				if (_Current >= 0.128) {
-					_Current_Data |= 0b00000001;
-					_Current -= 0.128;
-				}
+				if (_Current >= 0.512) {_Current_Data |= 0b00000100; _Current -= 0.512;}
+				if (_Current >= 0.256) {_Current_Data |= 0b00000010; _Current -= 0.256;}
+				if (_Current >= 0.128) {_Current_Data |= 0b00000001;}
 
 				// Write Charge Register
 				bool _Response = Write_Register(0x03, _Current_Data, true);
