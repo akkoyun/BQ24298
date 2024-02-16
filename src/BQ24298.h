@@ -11,7 +11,7 @@
 #define __BQ24298__
 
 	// Define Arduino Library
-	#ifndef __Arduino__
+	#ifndef Arduino_h
 		#include <Arduino.h>
 	#endif
 
@@ -25,713 +25,17 @@
 		#include <I2C_Functions.h>
 	#endif
 
-	// Define Charger Parameters
-	#ifndef _BQ24298_Charge_Current_
-		#define _BQ24298_Charge_Current_ 		2.048	// Charge current
-	#endif
-	#ifndef _BQ24298_Charge_Voltage_
-		#define _BQ24298_Charge_Voltage_		4.208	// Charge voltage
-	#endif
-	#ifndef _BQ24298_Input_Current_Limit_
-		#define _BQ24298_Input_Current_Limit_	3.0		// Input current limit
-	#endif
-	#ifndef _BQ24298_Input_Voltage_Limit_
-		#define _BQ24298_Input_Voltage_Limit_	5.08	// Input valtage limit
-	#endif
-	#ifndef _BQ24298_Min_System_Voltage_
-		#define _BQ24298_Min_System_Voltage_	3.8		// Minimum system voltage 
-	#endif
-	#ifndef _BQ24298_Boost_Voltage_
-		#define _BQ24298_Boost_Voltage_			4.20	// Boost voltage
-	#endif
-	#ifndef _BQ24298_PreCharge_Current_
-		#define _BQ24298_PreCharge_Current_		0.256	// Pre charge current
-	#endif
-	#ifndef _BQ24298_Charge_Term_Current_
-		#define _BQ24298_Charge_Term_Current_	0.128	// Charge termination current limit
-	#endif
-	#ifndef _BQ24298_Watchdog_
-		#define _BQ24298_Watchdog_				0		// Watchdog timer value
-	#endif
+	// Include Config Parameters
+	#include "Config.h"
 
 	// Charger Class
-	class BQ24298 : public I2C_Functions {
+	class BQ24298 : private I2C_Functions {
 
-		private:
-			
-			// Enable / disable buck.
-			bool Buck(bool State) {
-
-				// Define Variable
-				bool Stat;
-
-				// Control State
-				if (State) {
-
-					// Set Bit
-					Stat = Set_Register_Bit(0x00, 7, true);
-
-				} else {
-
-					// Clear Bit
-					Stat = Clear_Register_Bit(0x00, 7, true);
-
-				}
-
-				// End Function
-				return(Stat);
-
-			}
-
-			// Enable OTG.
-			bool OTG(bool State) {
-
-				// Define Variable
-				bool Stat;
-
-				// Control State
-				if (State) {
-
-					// Set Bit
-					Stat = Set_Register_Bit(0x01, 5, true);
-
-				} else {
-
-					// Clear Bit
-					Stat = Clear_Register_Bit(0x01, 5, true);
-
-				}
-
-				// End Function
-				return(Stat);
-
-			}
-
-			// Enable charge.
-			bool Enable_Charge(void) {
-
-				// Set Charge Bits
-				Set_Register_Bit(0x01, 4, true);
-				Set_Register_Bit(0x05, 7, true);
-
-				// Enable Bat FET
-				bool _Response = BATFET(false);
-
-				// End Function
-				return(_Response);
-
-			}
-
-			// Disable charge.
-			bool Disable_Charge(void) {
-
-				// Read Curent Power On Config Register
-				uint8_t _Current_PowerOn_Config_Register = Read_Register(0x01);
-
-				// Control for Register Read
-				if (_Current_PowerOn_Config_Register == 0xFF) return(false);
-
-				// Set Mask
-				uint8_t _PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0xCF;
-
-				// Write Charge Register
-				Write_Register(0x01, _PowerOn_Config_Register, false);
-
-				// Set Charge Termination Bit
-				Clear_Register_Bit(0x05, 7, true);
-
-				// Read Curent Power On Config Register
-				uint8_t _Current_Misc_Control_Register = Read_Register(0x07);
-
-				// Control for Register Read
-				if (_Current_Misc_Control_Register == 0xFF) return(false);
-
-				// Set Mask
-				uint8_t _Misc_Control_Register = _Current_Misc_Control_Register & 0xFC;
-
-				// Write Charge Register
-				bool _Response = Write_Register(0x07, _Misc_Control_Register, false);
-
-				// End Function
-				return(_Response);
-
-			}
-
-			// Enable boost mode.
-			bool Enable_Boost_Mode(void) {
-
-				// Set OTG Config Bit
-				bool Response = Set_Register_Bit(0x01, 5, true); // OTG_CONFIG -> true
-
-				// End Function
-				return(Response);
-
-			}
-
-			// Disable boost mode.
-			bool Disable_Boost_Mode(void) {
-
-				// Read Curent Misc Control Register
-				uint8_t _Current_Power_On_Control_Register = Read_Register(0x01);
-
-				// Control for Register Read
-				if (_Current_Power_On_Control_Register == 0xFF) return(false);
-
-				// Set Mask
-				uint8_t _Power_On_Control_Register = _Current_Power_On_Control_Register & 0xCF;
-
-				// Write Charge Register
-				bool _Response = Write_Register(0x01, _Power_On_Control_Register | 0x10, false);
-
-				// End Function
-				return(_Response);
-
-			}
-
-			// Enable charging.
-			bool Enable_Charging(void) {
-
-				// Read Register
-				uint8_t _Current_PowerOn_Config_Register = Read_Register(0x01);
-
-				// Set Register
-				uint8_t _PowerOn_Config_Register;
-				_PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0b11001111;
-				_PowerOn_Config_Register = _Current_PowerOn_Config_Register | 0b00010000;
-
-				// Write Charge Register
-				bool _Response = Write_Register(0x01, _PowerOn_Config_Register, true);
-
-				// End Function
-				return(_Response);
-
-			}
-
-			// Disable charging.
-			bool Disable_Charging(void) {
-
-				// Read Register
-				uint8_t _Current_PowerOn_Config_Register = Read_Register(0x01);
-
-				// Control for Register Read
-				if (_Current_PowerOn_Config_Register == 0xFF) return(false);
-
-				// Set Register
-				uint8_t _PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0xCF;
-
-				// Write Charge Register
-				bool _Response = Write_Register(0x01, _PowerOn_Config_Register, false);
-
-				// End Function
-				return(_Response);
-
-			}
-
-			// Set charge current.
-			bool Set_Charge_Current(float _Charge_Current) {
-
-				// Control for Function Variable
-				if (_Charge_Current >= 3.008) _Charge_Current = 3.008;
-				if (_Charge_Current <= 0.512) _Charge_Current = 0.512;
-
-				// Read Current Register
-				uint8_t _Charge_Register = Read_Register(0x02) & 0b00000011;
-
-				// Serial.println(_Charge_Register, BIN);
-
-				// Handel Data
-				if (_Charge_Current >= 2.048) {
-					_Charge_Register |= 0b10000000;
-					_Charge_Current -= 2.048;
-				}
-				if (_Charge_Current >= 1.024) {
-					_Charge_Register |= 0b01000000;
-					_Charge_Current -= 1.024;
-				}
-				if (_Charge_Current >= 0.512) {
-					_Charge_Register |= 0b00100000;
-					_Charge_Current -= 0.512;
-				}
-				if (_Charge_Current >= 0.256) {
-					_Charge_Register |= 0b00010000;
-					_Charge_Current -= 0.256;
-				}
-				if (_Charge_Current >= 0.128) {
-					_Charge_Register |= 0b00001000;
-					_Charge_Current -= 0.128;
-				}
-				if (_Charge_Current >= 0.064) {
-					_Charge_Register |= 0b00000100;
-					_Charge_Current -= 0.064;
-				}
-
-				// Serial.println(_Charge_Register, BIN);
-
-				// Write Charge Register
-				bool _Response = Write_Register(0x02, _Charge_Register, true);
-
-				// Serial.println(_Response);
-
-				// End Functions
-				return(_Response);
-
-			}
-
-			// Set charge voltage.
-			bool Set_Charge_Voltage(float _Charge_Voltage) {
-
-				// Control for Function Variable
-				if (_Charge_Voltage >= 4.512) _Charge_Voltage = 4.512;
-				if (_Charge_Voltage <= 3.504) _Charge_Voltage = 3.504;
-
-				// Read Register
-				uint8_t _Current_Register = Read_Register(0x04);
-
-				// Set Mask
-				uint8_t _Voltage_Register = _Current_Register & 0x03;
-
-				// Set Voltage Register
-				float _Voltage = _Charge_Voltage - 3.504;
-				if (_Voltage >= 0.512) {
-					_Voltage_Register |= 0b10000000;
-					_Voltage -= 0.512;
-				}
-				if (_Voltage >= 0.256) {
-					_Voltage_Register |= 0b01000000;
-					_Voltage -= 0.256;
-				}
-				if (_Voltage >= 0.128) {
-					_Voltage_Register |= 0b00100000;
-					_Voltage -= 0.128;
-				}
-				if (_Voltage >= 0.064) {
-					_Voltage_Register |= 0b00010000;
-					_Voltage -= 0.064;
-				}
-				if (_Voltage >= 0.032) {
-					_Voltage_Register |= 0b00001000;
-					_Voltage -= 0.032;
-				}
-				if (_Voltage >= 0.016) {
-					_Voltage_Register |= 0b00000100;
-					_Voltage -= 0.016;
-				}
-
-				// Write Voltage Register
-				bool _Response = Write_Register(0x04, _Voltage_Register, true);
-
-				// End Functions
-				return(_Response);
-
-			}
-
-			// Input current set function.
-			bool Set_Input_Current_Limit(float _Input_Current) {
-
-				// Read Curent Charge Register
-				uint8_t _Input_Source_Register = Read_Register(0x00) & 0b11111000;
-
-				// Set Current Value
-				if (_Input_Current == 0.100) _Input_Source_Register |= 0b00000000;
-				if (_Input_Current == 0.150) _Input_Source_Register |= 0b00000001;
-				if (_Input_Current == 0.500) _Input_Source_Register |= 0b00000010;
-				if (_Input_Current == 0.900) _Input_Source_Register |= 0b00000011;
-				if (_Input_Current == 1.000) _Input_Source_Register |= 0b00000100;
-				if (_Input_Current == 1.500) _Input_Source_Register |= 0b00000101;
-				if (_Input_Current == 2.000) _Input_Source_Register |= 0b00000110;
-				if (_Input_Current == 3.000) _Input_Source_Register |= 0b00000111;
-
-				// Write Voltage Register
-				bool _Response = Write_Register(0x00, _Input_Source_Register, true);
-
-				// End Functions
-				return(_Response);
-
-			}
-
-			// Input voltage limit set function
-			bool Set_Input_Voltage_Limit(float _Input_Voltage) {
-
-				// Control for Function Variable
-				if (_Input_Voltage >= 5.500) _Input_Voltage = 5.500;
-				if (_Input_Voltage <= 3.880) _Input_Voltage = 3.880;
-
-				// Read Curent Charge Register
-				uint8_t _Input_Source_Register = Read_Register(0x00) & 0b10000111;
-
-				// Set Voltage Register
-				float _Voltage = _Input_Voltage - 3.880;
-				if (_Voltage >= 0.640) {
-					_Input_Source_Register |= 0b01000000;
-					_Voltage -= 0.640;
-				}
-				if (_Voltage >= 0.320) {
-					_Input_Source_Register |= 0b00100000;
-					_Voltage -= 0.320;
-				}
-				if (_Voltage >= 0.160) {
-					_Input_Source_Register |= 0b00010000;
-					_Voltage -= 0.160;
-				}
-				if (_Voltage >= 0.080) {
-					_Input_Source_Register |= 0b00001000;
-					_Voltage -= 0.080;
-				}
-				// Write Voltage Register
-				bool _Response = Write_Register(0x00, _Input_Source_Register, true);
-
-				// End Functions
-				return(_Response);
-
-			}
-
-			// Minimum input voltage set function
-			bool Set_Minimum_System_Voltage(float _Minimum_Voltage) {
-
-				// Control for Function Variable
-				if (_Minimum_Voltage >= 3.7) _Minimum_Voltage = 3.7;
-				if (_Minimum_Voltage <= 3.0) _Minimum_Voltage = 3.0;
-
-				// Read Register
-				uint8_t _Current_Register = Read_Register(0x01) & 0b11110001;
-
-				// Set Voltage Register
-				float _Voltage = _Minimum_Voltage - 3.00;
-				if (_Voltage >= 0.4) {
-					_Current_Register |= 0b00001000;
-					_Voltage -= 0.4;
-				}
-				if (_Voltage >= 0.2) {
-					_Current_Register |= 0b00000100;
-					_Voltage -= 0.2;
-				}
-				if (_Voltage >= 0.1) {
-					_Current_Register |= 0b00000010;
-					_Voltage -= 0.1;
-				}
-
-				// Write Voltage Register
-				bool _Response = Write_Register(0x01, _Current_Register, true);
-
-				// End Functions
-				return(_Response);
-
-			}
-
-			// Boost voltage set function
-			bool Set_Boost_Voltage(float _Boost_Voltage) {
-
-				// Control for Function Variable
-				if (_Boost_Voltage >= 4.550) _Boost_Voltage = 4.550;
-				if (_Boost_Voltage <= 4.998) _Boost_Voltage = 4.998;
-
-				// Read Register
-				uint8_t _Register = Read_Register(0x06) & 0b00001111;
-
-				// Set Voltage Register
-				float _Voltage = _Boost_Voltage - 4.55;
-				if (_Voltage >= 0.512) {
-					_Register |= 0b10000000;
-					_Voltage -= 0.512;
-				}
-				if (_Voltage >= 0.256) {
-					_Register |= 0b01000000;
-					_Voltage -= 0.256;
-				}
-				if (_Voltage >= 0.128) {
-					_Register |= 0b00100000;
-					_Voltage -= 0.128;
-				}
-				if (_Voltage >= 0.064) {
-					_Register |= 0b00010000;
-					_Voltage -= 0.064;
-				}
-
-				// Write Voltage Register
-				bool _Response = Write_Register(0x06, _Register, true);
-
-				// End Functions
-				return(_Response);
-
-			}
-
-			// Precharge current set function
-			bool Set_PreCharge_Current(float _PreCharge_Current) {
-
-				// Control for Function Variable
-				if (_PreCharge_Current >= 2.048) _PreCharge_Current = 2.048;
-				if (_PreCharge_Current <= 0.128) _PreCharge_Current = 0.128;
-
-				// Read Curent Charge Register
-				uint8_t _Current_PreCharge_Current_Control_Register = Read_Register(0x03) & 0b00001111;
-
-				// Set Current Value
-				if (_PreCharge_Current == 0.128) _Current_PreCharge_Current_Control_Register |= 0b00010000;
-				if (_PreCharge_Current == 0.256) _Current_PreCharge_Current_Control_Register |= 0b00100000;
-				if (_PreCharge_Current == 0.384) _Current_PreCharge_Current_Control_Register |= 0b00110000;
-				if (_PreCharge_Current == 0.512) _Current_PreCharge_Current_Control_Register |= 0b01000000;
-				if (_PreCharge_Current == 0.768) _Current_PreCharge_Current_Control_Register |= 0b01010000;
-				if (_PreCharge_Current == 0.896) _Current_PreCharge_Current_Control_Register |= 0b01100000;
-				if (_PreCharge_Current == 1.024) _Current_PreCharge_Current_Control_Register |= 0b01110000;
-				if (_PreCharge_Current == 1.152) _Current_PreCharge_Current_Control_Register |= 0b10000000;
-				if (_PreCharge_Current == 1.280) _Current_PreCharge_Current_Control_Register |= 0b10010000;
-				if (_PreCharge_Current == 1.408) _Current_PreCharge_Current_Control_Register |= 0b10100000;
-				if (_PreCharge_Current == 1.536) _Current_PreCharge_Current_Control_Register |= 0b10110000;
-				if (_PreCharge_Current == 1.664) _Current_PreCharge_Current_Control_Register |= 0b11000000;
-				if (_PreCharge_Current == 1.792) _Current_PreCharge_Current_Control_Register |= 0b11010000;
-				if (_PreCharge_Current == 1.920) _Current_PreCharge_Current_Control_Register |= 0b11100000;
-				if (_PreCharge_Current == 2.048) _Current_PreCharge_Current_Control_Register |= 0b11110000;
-
-				// Write Charge Register
-				bool _Response = Write_Register(0x03, _Current_PreCharge_Current_Control_Register, true);
-
-				// End Functions
-				return(_Response);
-
-			}
-
-			// Precharge current get function.
-			float Get_PreCharge_Current(void) {
-
-				// Read Curent Charge Register
-				uint8_t _Current_PreCharge_Current_Control_Register = Read_Register(0x03);
-
-				// Control for Register Read
-				if (_Current_PreCharge_Current_Control_Register == 0xFF) return(NAN);
-				
-				// Set Mask
-				uint8_t _Mask = _Current_PreCharge_Current_Control_Register & 0xF0;
-
-				// Set Charge Register
-				float _Charge_Current = (_Mask * 0.008f) + 0.128f;
-
-				// End Functions
-				return(_Charge_Current);
-
-			}
-
-			// Charge termination current set function.
-			bool Set_TermCharge_Current(float _Term_Charge_Current) {
-
-				// Control for Function Variable
-				if (_Term_Charge_Current >= 1.024) _Term_Charge_Current = 1.024;
-				if (_Term_Charge_Current <= 0.128) _Term_Charge_Current = 0.128;
-
-				// Read Curent Charge Register
-				uint8_t _Current_Data = Read_Register(0x03) & 0b11111000;
-
-				// Set Current Register
-				float _Current = _Term_Charge_Current - 0.128;
-				if (_Current >= 0.512) {
-					_Current_Data |= 0b00000100;
-					_Current -= 0.512;
-				}
-				if (_Current >= 0.256) {
-					_Current_Data |= 0b00000010;
-					_Current -= 0.256;
-				}
-				if (_Current >= 0.128) {
-					_Current_Data |= 0b00000001;
-					_Current -= 0.128;
-				}
-
-				// Write Charge Register
-				bool _Response = Write_Register(0x03, _Current_Data, true);
-
-				// End Functions
-				return(_Response);
-
-			}
-
-			// Thermal regulation temperature set function.
-			bool Set_Thermal_Regulation_Temperature(uint8_t _Temperature) {
-
-				// Control for Function Variable
-				if (_Temperature > 120) _Temperature = 120;
-				if (_Temperature < 60) _Temperature = 60;
-
-				// Read Curent Charge Register
-				uint8_t _Current_Data = Read_Register(0x06);
-
-				// Control for Register Read
-				if (_Current_Data == 0xFF) return(false);
-				
-				// Set Mask
-				uint8_t _Mask = _Current_Data & 0xFC;
-
-				// Set Charge Register
-				uint8_t _Data = (BQ_Round(((_Temperature - 60) / 20)) & 0x03) | _Mask;
-
-				// Write Charge Register
-				bool _Response = Write_Register(0x06, _Data, false);
-
-				// End Functions
-				return(_Response);
-
-			}
-
-			// Battery FET disable function.
-			bool BATFET(bool State) {
-
-				// Declare Variable
-				bool _Response = false;
-
-				if (!State) _Response = Clear_Register_Bit(0x07, 5, true);
-				if (State) _Response = Set_Register_Bit(0x07, 5, true);
-
-				// End Function
-				return(_Response);
-
-			}
-
-			// DPDM disable function.
-			bool Disable_DPDM() {
-
-				// Set BatFet Bit
-				Clear_Register_Bit(0x07, 7, true);
-
-				// End Function
-				return(true);
-
-			}
-
-			// DPDM enable function.
-			bool Enable_DPDM() {
-
-				// Set BatFet Bit
-				Set_Register_Bit(0x07, 7, true);
-
-				// End Function
-				return(true);
-
-			}
-
-			// Battery fault interrupt enable function.
-			bool Enable_BatFault_INT(){
-
-				// Set BatFet Bit
-				Set_Register_Bit(0x07, 0, true);
-
-				// End Function
-				return(true);
-
-			}
-
-			// Battery fault interrupt disable function.
-			bool Disable_BatFault_INT() {
-
-				// Set BatFet Bit
-				Clear_Register_Bit(0x07, 0, true);
-
-				// End Function
-				return(true);
-
-			}
-
-			// Charge fault interrupt set function.
-			bool ChargeFault_INT(bool _State) {
-
-				// Declare variable
-				bool _Response;
-
-				// Enable Interrupt
-				if (_State == true) {
-
-					// Set Bit
-					_Response = Set_Register_Bit(0x07, 1, true);
-
-				}
-				
-				// Disable Interrupt
-				if (_State == false) {
-
-					// Clear Bit
-					_Response = Clear_Register_Bit(0x07, 1, true);
-
-				}
-
-
-				// End Function
-				return(_Response);
-
-			}
-
-			// Charge fault get function.
-			uint8_t Get_Charge_Fault(void) {
-
-				// Read Curent Charge Register
-				uint8_t _Current_Fault_Register = Read_Register(0x09);
-
-				// Set Data
-				uint8_t _Fault_Register = _Current_Fault_Register & 0x30;
-
-				// End Functions
-				return(_Fault_Register);
-
-			}
-
-			// Watchdog timer set function.
-			bool Set_Watchdog(uint8_t _Timer) {
-
-				// Read Curent Charge Register
-				uint8_t _Current_Register = Read_Register(0x05) & 0b11001111;
-
-				// Handle Timer
-				if (_Timer == 1) { // 40 sn
-
-					// Write Voltage Register
-					bool _Response = Write_Register(0x05, (_Current_Register | 0b00010000), true);
-
-					// End Functions
-					return(_Response);
-
-				} else if (_Timer == 2) { // 80 sn
-
-					// Write Voltage Register
-					bool _Response = Write_Register(0x05, (_Current_Register | 0b00100000), true);
-
-					// End Functions
-					return(_Response);
-
-				} else if (_Timer == 3) { // 160 sn
-
-					// Write Voltage Register
-					bool _Response = Write_Register(0x05, (_Current_Register | 0b00110000), true);
-
-					// End Functions
-					return(_Response);
-
-				}
-
-				// End Functions
-				return(false);
-
-			}
-
-			// Disable battery over heat fault function.
-			bool Disable_BHOT(void) {
-
-				// Declare Register
-				uint8_t _Register;
-
-				// Read Curent Charge Register
-				uint8_t _Current_Register = Read_Register(0x06);
-
-				// Handle Timer
-				_Register = _Current_Register | 0b00001111;
-
-				// Write Voltage Register
-				bool _Response = Write_Register(0x06, _Register, true);
-
-				// End Functions
-				return(_Response);
-
-			}
-
+		// Public Context
 		public:
 
 			// Construct a new BQ24298 object
-			BQ24298(bool _Multiplexer_Enable = false, uint8_t _Multiplexer_Channel = 0) : I2C_Functions(__I2C_Addr_BQ24298__, _Multiplexer_Enable, _Multiplexer_Channel) {
+			explicit BQ24298(bool _Multiplexer_Enable = false, uint8_t _Multiplexer_Channel = 0) : I2C_Functions(__I2C_Addr_BQ24298__, _Multiplexer_Enable, _Multiplexer_Channel) {
 			
 			}
 
@@ -1230,6 +534,641 @@
 
 				// End Function
 				return(true);
+
+			}
+
+			// Enable / disable buck.
+			bool Buck(bool State) {
+
+				// Control State
+				if (State) {
+
+					// Set Bit
+					return(Set_Register_Bit(0x00, 7, true));
+
+				} else {
+
+					// Clear Bit
+					return(Clear_Register_Bit(0x00, 7, true));
+
+				}
+
+				// End Function
+				return(false);
+
+			}
+
+			// Enable OTG.
+			bool OTG(bool State) {
+
+				// Define Variable
+				bool Stat;
+
+				// Control State
+				if (State) {
+
+					// Set Bit
+					Stat = Set_Register_Bit(0x01, 5, true);
+
+				} else {
+
+					// Clear Bit
+					Stat = Clear_Register_Bit(0x01, 5, true);
+
+				}
+
+				// End Function
+				return(Stat);
+
+			}
+
+			// Enable charge.
+			bool Enable_Charge(void) {
+
+				// Set Charge Bits
+				Set_Register_Bit(0x01, 4, true);
+				Set_Register_Bit(0x05, 7, true);
+
+				// Enable Bat FET
+				bool _Response = BATFET(false);
+
+				// End Function
+				return(_Response);
+
+			}
+
+			// Disable charge.
+			bool Disable_Charge(void) {
+
+				// Read Curent Power On Config Register
+				uint8_t _Current_PowerOn_Config_Register = Read_Register(0x01);
+
+				// Control for Register Read
+				if (_Current_PowerOn_Config_Register == 0xFF) return(false);
+
+				// Set Mask
+				uint8_t _PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0xCF;
+
+				// Write Charge Register
+				Write_Register(0x01, _PowerOn_Config_Register, false);
+
+				// Set Charge Termination Bit
+				Clear_Register_Bit(0x05, 7, true);
+
+				// Read Curent Power On Config Register
+				uint8_t _Current_Misc_Control_Register = Read_Register(0x07);
+
+				// Control for Register Read
+				if (_Current_Misc_Control_Register == 0xFF) return(false);
+
+				// Set Mask
+				uint8_t _Misc_Control_Register = _Current_Misc_Control_Register & 0xFC;
+
+				// Write Charge Register
+				bool _Response = Write_Register(0x07, _Misc_Control_Register, false);
+
+				// End Function
+				return(_Response);
+
+			}
+
+			// Enable boost mode.
+			bool Enable_Boost_Mode(void) {
+
+				// Set OTG Config Bit
+				bool Response = Set_Register_Bit(0x01, 5, true); // OTG_CONFIG -> true
+
+				// End Function
+				return(Response);
+
+			}
+
+			// Disable boost mode.
+			bool Disable_Boost_Mode(void) {
+
+				// Read Curent Misc Control Register
+				uint8_t _Current_Power_On_Control_Register = Read_Register(0x01);
+
+				// Control for Register Read
+				if (_Current_Power_On_Control_Register == 0xFF) return(false);
+
+				// Set Mask
+				uint8_t _Power_On_Control_Register = _Current_Power_On_Control_Register & 0xCF;
+
+				// Write Charge Register
+				bool _Response = Write_Register(0x01, _Power_On_Control_Register | 0x10, false);
+
+				// End Function
+				return(_Response);
+
+			}
+
+			// Enable charging.
+			bool Enable_Charging(void) {
+
+				// Read Register
+				uint8_t _Current_PowerOn_Config_Register = Read_Register(0x01);
+
+				// Set Register
+				bitClear(_Current_PowerOn_Config_Register, 4);
+				bitClear(_Current_PowerOn_Config_Register, 5);
+				bitSet(_Current_PowerOn_Config_Register, 4);
+
+				// Write Charge Register
+				bool _Response = Write_Register(0x01, _Current_PowerOn_Config_Register, true);
+
+				// End Function
+				return(_Response);
+
+			}
+
+			// Disable charging.
+			bool Disable_Charging(void) {
+
+				// Read Register
+				uint8_t _Current_PowerOn_Config_Register = Read_Register(0x01);
+
+				// Control for Register Read
+				if (_Current_PowerOn_Config_Register == 0xFF) return(false);
+
+				// Set Register
+				uint8_t _PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0xCF;
+
+				// Write Charge Register
+				bool _Response = Write_Register(0x01, _PowerOn_Config_Register, false);
+
+				// End Function
+				return(_Response);
+
+			}
+
+			// Set charge current.
+			bool Set_Charge_Current(float _Charge_Current) {
+
+				// Read Current Register
+				uint8_t _Charge_Register = Read_Register(0x02) & 0b00000011;
+
+				// Serial.println(_Charge_Register, BIN);
+
+				// Handel Data
+				if (_Charge_Current >= 2.048) {
+					_Charge_Register |= 0b10000000;
+					_Charge_Current -= 2.048;
+				}
+				if (_Charge_Current >= 1.024) {
+					_Charge_Register |= 0b01000000;
+					_Charge_Current -= 1.024;
+				}
+				if (_Charge_Current >= 0.512) {
+					_Charge_Register |= 0b00100000;
+					_Charge_Current -= 0.512;
+				}
+				if (_Charge_Current >= 0.256) {
+					_Charge_Register |= 0b00010000;
+					_Charge_Current -= 0.256;
+				}
+				if (_Charge_Current >= 0.128) {
+					_Charge_Register |= 0b00001000;
+					_Charge_Current -= 0.128;
+				}
+				if (_Charge_Current >= 0.064) {
+					_Charge_Register |= 0b00000100;
+					_Charge_Current -= 0.064;
+				}
+
+				// Serial.println(_Charge_Register, BIN);
+
+				// Write Charge Register
+				bool _Response = Write_Register(0x02, _Charge_Register, true);
+
+				// Serial.println(_Response);
+
+				// End Functions
+				return(_Response);
+
+			}
+
+			// Set charge voltage.
+			bool Set_Charge_Voltage(float _Charge_Voltage) {
+
+				// Read Register
+				uint8_t _Current_Register = Read_Register(0x04);
+
+				// Set Mask
+				uint8_t _Voltage_Register = _Current_Register & 0x03;
+
+				// Set Voltage Register
+				float _Voltage = _Charge_Voltage - 3.504;
+				if (_Voltage >= 0.512) {
+					_Voltage_Register |= 0b10000000;
+					_Voltage -= 0.512;
+				}
+				if (_Voltage >= 0.256) {
+					_Voltage_Register |= 0b01000000;
+					_Voltage -= 0.256;
+				}
+				if (_Voltage >= 0.128) {
+					_Voltage_Register |= 0b00100000;
+					_Voltage -= 0.128;
+				}
+				if (_Voltage >= 0.064) {
+					_Voltage_Register |= 0b00010000;
+					_Voltage -= 0.064;
+				}
+				if (_Voltage >= 0.032) {
+					_Voltage_Register |= 0b00001000;
+					_Voltage -= 0.032;
+				}
+				if (_Voltage >= 0.016) {
+					_Voltage_Register |= 0b00000100;
+					_Voltage -= 0.016;
+				}
+
+				// Write Voltage Register
+				bool _Response = Write_Register(0x04, _Voltage_Register, true);
+
+				// End Functions
+				return(_Response);
+
+			}
+
+			// Input current set function.
+			bool Set_Input_Current_Limit(float _Input_Current) {
+
+				// Read Curent Charge Register
+				uint8_t _Input_Source_Register = Read_Register(0x00) & 0b11111000;
+
+				// Set Current Value
+				if (_Input_Current == 0.100) _Input_Source_Register |= 0b00000000;
+				if (_Input_Current == 0.150) _Input_Source_Register |= 0b00000001;
+				if (_Input_Current == 0.500) _Input_Source_Register |= 0b00000010;
+				if (_Input_Current == 0.900) _Input_Source_Register |= 0b00000011;
+				if (_Input_Current == 1.000) _Input_Source_Register |= 0b00000100;
+				if (_Input_Current == 1.500) _Input_Source_Register |= 0b00000101;
+				if (_Input_Current == 2.000) _Input_Source_Register |= 0b00000110;
+				if (_Input_Current == 3.000) _Input_Source_Register |= 0b00000111;
+
+				// Write Voltage Register
+				bool _Response = Write_Register(0x00, _Input_Source_Register, true);
+
+				// End Functions
+				return(_Response);
+
+			}
+
+			// Input voltage limit set function
+			bool Set_Input_Voltage_Limit(float _Input_Voltage) {
+
+				// Read Curent Charge Register
+				uint8_t _Input_Source_Register = Read_Register(0x00) & 0b10000111;
+
+				// Set Voltage Register
+				float _Voltage = _Input_Voltage - 3.880;
+				if (_Voltage >= 0.640) {
+					_Input_Source_Register |= 0b01000000;
+					_Voltage -= 0.640;
+				}
+				if (_Voltage >= 0.320) {
+					_Input_Source_Register |= 0b00100000;
+					_Voltage -= 0.320;
+				}
+				if (_Voltage >= 0.160) {
+					_Input_Source_Register |= 0b00010000;
+					_Voltage -= 0.160;
+				}
+				if (_Voltage >= 0.080) {
+					_Input_Source_Register |= 0b00001000;
+					_Voltage -= 0.080;
+				}
+				
+				// Write Voltage Register
+				bool _Response = Write_Register(0x00, _Input_Source_Register, true);
+
+				// End Functions
+				return(_Response);
+
+			}
+
+			// Minimum input voltage set function
+			bool Set_Minimum_System_Voltage(float _Minimum_Voltage) {
+
+				// Read Register
+				uint8_t _Current_Register = Read_Register(0x01) & 0b11110001;
+
+				// Set Voltage Register
+				float _Voltage = _Minimum_Voltage - 3.00;
+				if (_Voltage >= 0.4) {
+					_Current_Register |= 0b00001000;
+					_Voltage -= 0.4;
+				}
+				if (_Voltage >= 0.2) {
+					_Current_Register |= 0b00000100;
+					_Voltage -= 0.2;
+				}
+				if (_Voltage >= 0.1) {
+					_Current_Register |= 0b00000010;
+					_Voltage -= 0.1;
+				}
+
+				// Write Voltage Register
+				bool _Response = Write_Register(0x01, _Current_Register, true);
+
+				// End Functions
+				return(_Response);
+
+			}
+
+			// Boost voltage set function
+			bool Set_Boost_Voltage(float _Boost_Voltage) {
+
+				// Read Register
+				uint8_t _Register = Read_Register(0x06) & 0b00001111;
+
+				// Set Voltage Register
+				float _Voltage = _Boost_Voltage - 4.55;
+				if (_Voltage >= 0.512) {
+					_Register |= 0b10000000;
+					_Voltage -= 0.512;
+				}
+				if (_Voltage >= 0.256) {
+					_Register |= 0b01000000;
+					_Voltage -= 0.256;
+				}
+				if (_Voltage >= 0.128) {
+					_Register |= 0b00100000;
+					_Voltage -= 0.128;
+				}
+				if (_Voltage >= 0.064) {
+					_Register |= 0b00010000;
+					_Voltage -= 0.064;
+				}
+
+				// Write Voltage Register
+				bool _Response = Write_Register(0x06, _Register, true);
+
+				// End Functions
+				return(_Response);
+
+			}
+
+			// Precharge current set function
+			bool Set_PreCharge_Current(float _PreCharge_Current) {
+
+				// Read Curent Charge Register
+				uint8_t _Current_PreCharge_Current_Control_Register = Read_Register(0x03) & 0b00001111;
+
+				// Set Current Value
+				if (_PreCharge_Current == 0.128) _Current_PreCharge_Current_Control_Register |= 0b00010000;
+				if (_PreCharge_Current == 0.256) _Current_PreCharge_Current_Control_Register |= 0b00100000;
+				if (_PreCharge_Current == 0.384) _Current_PreCharge_Current_Control_Register |= 0b00110000;
+				if (_PreCharge_Current == 0.512) _Current_PreCharge_Current_Control_Register |= 0b01000000;
+				if (_PreCharge_Current == 0.768) _Current_PreCharge_Current_Control_Register |= 0b01010000;
+				if (_PreCharge_Current == 0.896) _Current_PreCharge_Current_Control_Register |= 0b01100000;
+				if (_PreCharge_Current == 1.024) _Current_PreCharge_Current_Control_Register |= 0b01110000;
+				if (_PreCharge_Current == 1.152) _Current_PreCharge_Current_Control_Register |= 0b10000000;
+				if (_PreCharge_Current == 1.280) _Current_PreCharge_Current_Control_Register |= 0b10010000;
+				if (_PreCharge_Current == 1.408) _Current_PreCharge_Current_Control_Register |= 0b10100000;
+				if (_PreCharge_Current == 1.536) _Current_PreCharge_Current_Control_Register |= 0b10110000;
+				if (_PreCharge_Current == 1.664) _Current_PreCharge_Current_Control_Register |= 0b11000000;
+				if (_PreCharge_Current == 1.792) _Current_PreCharge_Current_Control_Register |= 0b11010000;
+				if (_PreCharge_Current == 1.920) _Current_PreCharge_Current_Control_Register |= 0b11100000;
+				if (_PreCharge_Current == 2.048) _Current_PreCharge_Current_Control_Register |= 0b11110000;
+
+				// Write Charge Register
+				bool _Response = Write_Register(0x03, _Current_PreCharge_Current_Control_Register, true);
+
+				// End Functions
+				return(_Response);
+
+			}
+
+			// Precharge current get function.
+			float Get_PreCharge_Current(void) {
+
+				// Read Curent Charge Register
+				uint8_t _Current_PreCharge_Current_Control_Register = Read_Register(0x03);
+
+				// Control for Register Read
+				if (_Current_PreCharge_Current_Control_Register == 0xFF) return(NAN);
+				
+				// Set Mask
+				uint8_t _Mask = _Current_PreCharge_Current_Control_Register & 0xF0;
+
+				// Set Charge Register
+				float _Charge_Current = (_Mask * 0.008f) + 0.128f;
+
+				// End Functions
+				return(_Charge_Current);
+
+			}
+
+			// Charge termination current set function.
+			bool Set_TermCharge_Current(float _Term_Charge_Current) {
+
+				// Read Curent Charge Register
+				uint8_t _Current_Data = Read_Register(0x03) & 0b11111000;
+
+				// Set Current Register
+				float _Current = _Term_Charge_Current - 0.128;
+				if (_Current >= 0.512) {
+					_Current_Data |= 0b00000100;
+					_Current -= 0.512;
+				}
+				if (_Current >= 0.256) {
+					_Current_Data |= 0b00000010;
+					_Current -= 0.256;
+				}
+				if (_Current >= 0.128) {
+					_Current_Data |= 0b00000001;
+					_Current -= 0.128;
+				}
+
+				// Write Charge Register
+				bool _Response = Write_Register(0x03, _Current_Data, true);
+
+				// End Functions
+				return(_Response);
+
+			}
+
+			// Thermal regulation temperature set function.
+			bool Set_Thermal_Regulation_Temperature(uint8_t _Temperature) {
+
+				// Read Curent Charge Register
+				uint8_t _Current_Data = Read_Register(0x06);
+
+				// Control for Register Read
+				if (_Current_Data == 0xFF) return(false);
+				
+				// Set Mask
+				uint8_t _Mask = _Current_Data & 0xFC;
+
+				// Set Charge Register
+				uint8_t _Data = (BQ_Round(((_Temperature - 60) / 20)) & 0x03) | _Mask;
+
+				// Write Charge Register
+				bool _Response = Write_Register(0x06, _Data, false);
+
+				// End Functions
+				return(_Response);
+
+			}
+
+			// Battery FET disable function.
+			bool BATFET(bool State) {
+
+				// Declare Variable
+				bool _Response = false;
+
+				if (!State) _Response = Clear_Register_Bit(0x07, 5, true);
+				if (State) _Response = Set_Register_Bit(0x07, 5, true);
+
+				// End Function
+				return(_Response);
+
+			}
+
+			// DPDM disable function.
+			bool Disable_DPDM() {
+
+				// Set BatFet Bit
+				Clear_Register_Bit(0x07, 7, true);
+
+				// End Function
+				return(true);
+
+			}
+
+			// DPDM enable function.
+			bool Enable_DPDM() {
+
+				// Set BatFet Bit
+				Set_Register_Bit(0x07, 7, true);
+
+				// End Function
+				return(true);
+
+			}
+
+			// Battery fault interrupt enable function.
+			bool Enable_BatFault_INT(){
+
+				// Set BatFet Bit
+				Set_Register_Bit(0x07, 0, true);
+
+				// End Function
+				return(true);
+
+			}
+
+			// Battery fault interrupt disable function.
+			bool Disable_BatFault_INT() {
+
+				// Set BatFet Bit
+				Clear_Register_Bit(0x07, 0, true);
+
+				// End Function
+				return(true);
+
+			}
+
+			// Charge fault interrupt set function.
+			bool ChargeFault_INT(bool _State) {
+
+				// Declare variable
+				bool _Response;
+
+				// Enable Interrupt
+				if (_State == true) {
+
+					// Set Bit
+					_Response = Set_Register_Bit(0x07, 1, true);
+
+				}
+				
+				// Disable Interrupt
+				if (_State == false) {
+
+					// Clear Bit
+					_Response = Clear_Register_Bit(0x07, 1, true);
+
+				}
+
+
+				// End Function
+				return(_Response);
+
+			}
+
+			// Charge fault get function.
+			uint8_t Get_Charge_Fault(void) {
+
+				// Read Curent Charge Register
+				uint8_t _Current_Fault_Register = Read_Register(0x09);
+
+				// Set Data
+				uint8_t _Fault_Register = _Current_Fault_Register & 0x30;
+
+				// End Functions
+				return(_Fault_Register);
+
+			}
+
+			// Watchdog timer set function.
+			bool Set_Watchdog(uint8_t _Timer) {
+
+				// Read Curent Charge Register
+				uint8_t _Current_Register = Read_Register(0x05) & 0b11001111;
+
+				// Handle Timer
+				if (_Timer == 1) { // 40 sn
+
+					// Write Voltage Register
+					bool _Response = Write_Register(0x05, (_Current_Register | 0b00010000), true);
+
+					// End Functions
+					return(_Response);
+
+				} else if (_Timer == 2) { // 80 sn
+
+					// Write Voltage Register
+					bool _Response = Write_Register(0x05, (_Current_Register | 0b00100000), true);
+
+					// End Functions
+					return(_Response);
+
+				} else if (_Timer == 3) { // 160 sn
+
+					// Write Voltage Register
+					bool _Response = Write_Register(0x05, (_Current_Register | 0b00110000), true);
+
+					// End Functions
+					return(_Response);
+
+				}
+
+				// End Functions
+				return(false);
+
+			}
+
+			// Disable battery over heat fault function.
+			bool Disable_BHOT(void) {
+
+				// Declare Register
+				uint8_t _Register;
+
+				// Read Curent Charge Register
+				uint8_t _Current_Register = Read_Register(0x06);
+
+				// Handle Timer
+				_Register = _Current_Register | 0b00001111;
+
+				// Write Voltage Register
+				bool _Response = Write_Register(0x06, _Register, true);
+
+				// End Functions
+				return(_Response);
 
 			}
 
