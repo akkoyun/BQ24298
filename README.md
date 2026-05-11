@@ -1,16 +1,78 @@
-# BQ24298 Charger Library <sup>V2.1</sup>
+# BQ24298 Charger Library v3.0.1
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/akkoyun/BQ24298) ![arduino-library-badge](https://www.ardu-badge.com/badge/BQ24298.svg?) ![Visits Badge](https://badges.pufler.dev/visits/akkoyun/BQ24298) ![GitHub stars](https://img.shields.io/github/stars/akkoyun/BQ24298?style=flat&logo=github) ![Updated Badge](https://badges.pufler.dev/updated/akkoyun/BQ24298) ![PlatformIO Registry](https://badges.registry.platformio.org/packages/akkoyun/library/BQ24298.svg) 
-[![Check Arduino](https://github.com/akkoyun/BQ24298/actions/workflows/check-arduino.yml/badge.svg)](https://github.com/akkoyun/BQ24298/actions/workflows/check-arduino.yml) [![Compile Examples](https://github.com/akkoyun/BQ24298/actions/workflows/compile-examples.yml/badge.svg)](https://github.com/akkoyun/BQ24298/actions/workflows/compile-examples.yml) [![Spell Check](https://github.com/akkoyun/BQ24298/actions/workflows/spell-check.yml/badge.svg)](https://github.com/akkoyun/BQ24298/actions/workflows/spell-check.yml)
+Arduino library for the Texas Instruments BQ24298 single-cell Li-Ion/Li-Polymer charger and power-path management IC.
 
-	Build - 02.01.07
+## Features
 
----
+- I2C-based control via external I2C_Functions dependency
+- Buck/boost and OTG control
+- Charge current/voltage configuration
+- Input current/voltage limit configuration
+- Watchdog, thermal and fault handling helpers
+- Register definitions centralized in Definitions.h
 
-**Abstract**
+## Dependencies
 
-The bq24298 is a highly-integrated switch-mode battery charge management and system power path management device for 1 cell Li-Ion and Li-polymer battery in a wide range of smart phone and tablet applications. Its low impedance power path optimizes switch-mode operation efficiency, reduces battery charging time and extends battery life during discharging phase.
+- I2C_Functions library
 
----
+## Installation
 
-[![Support me](https://img.shields.io/badge/Support-PATREON-GREEN.svg)](https://www.patreon.com/bePatron?u=62967889) ![Twitter Follow](https://img.shields.io/twitter/follow/gunceakkoyun?style=social) ![YouTube Channel Views](https://img.shields.io/youtube/channel/views/UCIguQGdaBT1GnnVMz5qAZ2Q?style=social) ![Repos Badge](https://badges.pufler.dev/repos/akkoyun) [![E-Mail](https://img.shields.io/badge/E_Mail-Mehmet_Gunce_Akkoyun-blue.svg)](mailto:akkoyun@me.com) ![GitHub](https://img.shields.io/github/license/akkoyun/Statistical) 
+### Arduino Library Manager
+
+Search for BQ24298 and install.
+
+### PlatformIO
+
+Add to lib_deps:
+
+```ini
+akkoyun/BQ24298@^3.0.1
+```
+
+## Quick Start
+
+```cpp
+#include <BQ24298.h>
+
+BQ24298 Charger(true, 1); // multiplexer enabled, channel 1
+
+void setup() {
+  Serial.begin(115200);
+
+
+  BQ24298_Error result = Charger.Begin();
+  if (result != BQ24298_Error::SUCCESS) {
+    Serial.print("Init failed, code: ");
+    Serial.println((uint8_t)result);
+    while (1) {}
+  }
+
+  Charger.Set_Charge_Current(2.048);
+  Charger.Set_Charge_Voltage(4.208);
+}
+
+void loop() {
+  Serial.print("VBUS: ");
+  Serial.println(Charger.VBUS_STAT());
+  delay(1000);
+}
+```
+
+## API Notes
+
+- Begin returns BQ24298_Error.
+- SUCCESS means initialization completed.
+- INVALID_VERSION means unexpected device ID.
+- DEVICE_NOT_FOUND means I2C read failed during identification.
+
+## Examples
+
+- examples/BatteryCharger
+- examples/OTG_BoostMode
+- examples/ThermalManagement
+- examples/LowPowerErrorHandling
+- examples/MultiChargerManagement
+
+## License
+
+MIT

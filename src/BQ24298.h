@@ -28,6 +28,9 @@
 	// Include Config Parameters
 	#include "Config.h"
 
+	// Include Hardware Definitions (registers, enums, PROGMEM tables)
+	#include "Definitions.h"
+
 	// Charger Class
 	class BQ24298 : private I2C_Functions {
 
@@ -40,73 +43,63 @@
 			}
 
 			// Begin Function
-			bool Begin(void) {
+			BQ24298_Error Begin(void) {
 
 				// Start I2C
 				I2C_Functions::Begin();
 
-				// Control for Device
-				if (I2C_Functions::Detect()) {
-
-					// Check PMIC Version
-					uint8_t _Version = Read_Register(0x0A);
-
-					// Control for Version
-					if (_Version == 0x24) {
-
-						// Set Charge Current
-						this->Set_Charge_Current(_BQ24298_Charge_Current_);
-
-						// Set Charge Voltage
-						this->Set_Charge_Voltage(_BQ24298_Charge_Voltage_);
-
-						// Set Charger Input Current Limit		
-						this->Set_Input_Current_Limit(_BQ24298_Input_Current_Limit_);
-
-						// Set Charger Input Voltage Limit
-						this->Set_Input_Voltage_Limit(_BQ24298_Input_Voltage_Limit_);
-
-						// Set Minimum System Voltage
-						this->Set_Minimum_System_Voltage(_BQ24298_Min_System_Voltage_);
-
-						// Set Boost Voltage
-						this->Set_Boost_Voltage(_BQ24298_Boost_Voltage_);
-
-						// Set Pre Charge Current
-						this->Set_PreCharge_Current(_BQ24298_PreCharge_Current_);
-
-						// Set Charge Termination Current
-						this->Set_TermCharge_Current(_BQ24298_Charge_Term_Current_);
-
-						// Enable Boost
-						this->Enable_Boost_Mode();
-						
-						// Enable Charge
-						this->Enable_Charge();
-
-						// Disable Watchdog
-						this->Set_Watchdog(_BQ24298_Watchdog_);
-
-						// Disable Boost Temperature
-						this->Disable_BHOT();
-						
-						// Disable OTG
-						this->OTG(false);
-
-						// End Function
-						return(true);
-
-					}
-
-					// End Function
-					return(false);
-
-				} else {
-
-					// End Function
-					return(false);
-
+				// Check PMIC Version
+				uint8_t _Version = Read_Register(BQ24298_Reg::VENDOR_PART_REV);
+				if (_Version == 0xFF) {
+					return BQ24298_Error::DEVICE_NOT_FOUND;
 				}
+
+				// Control for Version
+				if (_Version != BQ24298_I2C::DEVICE_VERSION) {
+					return BQ24298_Error::INVALID_VERSION;
+				}
+
+				// Set Charge Current
+				if (!this->Set_Charge_Current(_BQ24298_Charge_Current_)) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Set Charge Voltage
+				if (!this->Set_Charge_Voltage(_BQ24298_Charge_Voltage_)) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Set Charger Input Current Limit
+				if (!this->Set_Input_Current_Limit(_BQ24298_Input_Current_Limit_)) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Set Charger Input Voltage Limit
+				if (!this->Set_Input_Voltage_Limit(_BQ24298_Input_Voltage_Limit_)) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Set Minimum System Voltage
+				if (!this->Set_Minimum_System_Voltage(_BQ24298_Min_System_Voltage_)) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Set Boost Voltage
+				if (!this->Set_Boost_Voltage(_BQ24298_Boost_Voltage_)) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Set Pre Charge Current
+				if (!this->Set_PreCharge_Current(_BQ24298_PreCharge_Current_)) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Set Charge Termination Current
+				if (!this->Set_TermCharge_Current(_BQ24298_Charge_Term_Current_)) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Enable Boost
+				if (!this->Enable_Boost_Mode()) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Enable Charge
+				if (!this->Enable_Charge()) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Configure Watchdog
+				if (!this->Set_Watchdog(_BQ24298_Watchdog_)) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Disable Boost Temperature
+				if (!this->Disable_BHOT()) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// Disable OTG
+				if (!this->OTG(false)) return BQ24298_Error::INITIALIZATION_FAILED;
+
+				// End Function
+				return BQ24298_Error::SUCCESS;
 
 			}
 
@@ -114,9 +107,7 @@
 			bool PG_STAT(void) {
 
 				// Get Bit Value
-				bool _Response = Read_Register_Bit(0x08, 2);
-				
-	//			Serial.print(_Response, BIN);
+				bool _Response = Read_Register_Bit(BQ24298_Reg::SYSTEM_STATUS, 2);
 
 				// End Function
 				return(_Response);
@@ -127,8 +118,8 @@
 			bool THERM_STAT(void) {
 
 				// Get Bit Value
-				bool _Response = Read_Register_Bit(0x08, 1);
-				
+				bool _Response = Read_Register_Bit(BQ24298_Reg::SYSTEM_STATUS, 1);
+
 				// End Function
 				return(_Response);
 
@@ -138,7 +129,7 @@
 			bool DPM_STAT(void) {
 
 				// Get Bit Value
-				bool _Response = Read_Register_Bit(0x08, 3);
+				bool _Response = Read_Register_Bit(BQ24298_Reg::SYSTEM_STATUS, 3);
 				
 				// End Function
 				return(_Response);
@@ -149,8 +140,8 @@
 			bool WATCHDOG_FAULT(void) {
 
 				// Get Bit Value
-				bool _Response = Read_Register_Bit(0x09, 7);
-				
+				bool _Response = Read_Register_Bit(BQ24298_Reg::FAULT, 7);
+
 				// End Function
 				return(_Response);
 
@@ -160,8 +151,8 @@
 			bool BAT_OVP_FAULT(void) {
 
 				// Get Bit Value
-				bool _Response = Read_Register_Bit(0x09, 3);
-				
+				bool _Response = Read_Register_Bit(BQ24298_Reg::FAULT, 3);
+
 				// End Function
 				return(_Response);
 
@@ -171,8 +162,8 @@
 			bool VSYS_STAT(void) {
 
 				// Get Bit Value
-				bool _Response = Read_Register_Bit(0x08, 0);
-				
+				bool _Response = Read_Register_Bit(BQ24298_Reg::SYSTEM_STATUS, 0);
+
 				// End Function
 				return(_Response);
 
@@ -182,8 +173,8 @@
 			bool BATLOWV(void) {
 
 				// Get Bit Value
-				bool _Response = Read_Register_Bit(0x04, 1);
-				
+				bool _Response = Read_Register_Bit(BQ24298_Reg::CHARGE_VOLTAGE_CTRL, 1);
+
 				// End Function
 				return(_Response);
 
@@ -193,8 +184,8 @@
 			bool BCOLD(void) {
 
 				// Get Bit Value
-				bool _Response = Read_Register_Bit(0x02, 1);
-				
+				bool _Response = Read_Register_Bit(BQ24298_Reg::CHARGE_CURRENT_CTRL, 1);
+
 				// End Function
 				return(_Response);
 
@@ -204,10 +195,10 @@
 			bool NTC_FAULT() {
 
 				// Get Bit Value
-				bool _Response_0 = Read_Register_Bit(0x09, 0);
+				bool _Response_0 = Read_Register_Bit(BQ24298_Reg::FAULT, 0);
 
 				// Get Bit Value
-				bool _Response_1 = Read_Register_Bit(0x09, 01);
+				bool _Response_1 = Read_Register_Bit(BQ24298_Reg::FAULT, 1);
 
 				// End Function
 				return (_Response_0 and _Response_1);
@@ -218,7 +209,7 @@
 			float Get_Charge_Current(void) {
 
 				// Read Current Register
-				uint8_t _Charge_Register = Read_Register(0x06);
+				uint8_t _Charge_Register = Read_Register(BQ24298_Reg::CHARGE_CURRENT_CTRL);
 
 				// Declare Variable
 				float _Charge_Current = 0.512;
@@ -240,11 +231,11 @@
 			float Get_Charge_Voltage(void) {
 
 				// Read Curent Charge Register
-				uint8_t _Current_Charge_Voltage_Control_Register = Read_Register(0x04);
+				uint8_t _Current_Charge_Voltage_Control_Register = Read_Register(BQ24298_Reg::CHARGE_VOLTAGE_CTRL);
 
 				// Control for Register Read
 				if (_Current_Charge_Voltage_Control_Register == 0xFF) return(NAN);
-				
+
 				// Set Mask
 				uint8_t _Mask = _Current_Charge_Voltage_Control_Register & 0xFC;
 
@@ -260,7 +251,7 @@
 			float Get_Input_Current_Limit(void) {
 
 				// Read Curent Charge Register
-				uint8_t _Input_Source_Register = Read_Register(0x00);
+				uint8_t _Input_Source_Register = Read_Register(BQ24298_Reg::INPUT_SOURCE_CTRL);
 
 				// Set Mask
 				uint8_t _Mask = _Input_Source_Register & 0b00000111;
@@ -296,8 +287,8 @@
 			float Get_Input_Voltage_Limit(void) {
 
 				// Read Curent Charge Register
-				uint8_t _Input_Source_Register = Read_Register(0x00);
-				
+				uint8_t _Input_Source_Register = Read_Register(BQ24298_Reg::INPUT_SOURCE_CTRL);
+
 				// Set Voltage Variable
 				float _Voltage = 3.88;
 
@@ -316,8 +307,8 @@
 			float Get_Minimum_System_Voltage(void) {
 
 				// Read Curent Charge Register
-				uint8_t _Input_Source_Register = Read_Register(0x01);
-				
+				uint8_t _Input_Source_Register = Read_Register(BQ24298_Reg::POWER_ON_CONFIG);
+
 				// Set Voltage Variable
 				float _Voltage = 3.00;
 
@@ -335,7 +326,7 @@
 			float Get_Boost_Voltage(void) {
 
 				// Read Curent Charge Register
-				uint8_t _Input_Source_Register = Read_Register(0x06);
+				uint8_t _Input_Source_Register = Read_Register(BQ24298_Reg::MISC_OPERATION_CTRL);
 				
 				// Set Voltage Variable
 				float _Voltage = 4.55;
@@ -355,7 +346,7 @@
 			float Get_PreCharge_Current_Limit(void) {
 
 				// Read Curent Charge Register
-				uint8_t _Input_Source_Register = Read_Register(0x03);
+				uint8_t _Input_Source_Register = Read_Register(BQ24298_Reg::PRECHARGE_TERM_CURRENT);
 
 				// Set Mask
 				uint8_t _Mask = _Input_Source_Register & 0b11110000;
@@ -407,7 +398,7 @@
 			float Get_ChargeTerm_Current(void) {
 
 				// Read Curent Charge Register
-				uint8_t _Current_Data = Read_Register(0x03) & 0b11111000;
+				uint8_t _Current_Data = Read_Register(BQ24298_Reg::PRECHARGE_TERM_CURRENT) & 0b11111000;
 
 				// Set Voltage Variable
 				float _Current = 0.128;
@@ -426,7 +417,7 @@
 			float Get_Thermal_Regulation_Temperature() {
 
 				// Read Curent Charge Register
-				uint8_t _Current_Data = Read_Register(0x06);
+				uint8_t _Current_Data = Read_Register(BQ24298_Reg::MISC_OPERATION_CTRL);
 
 				// Control for Register Read
 				if (_Current_Data == 0xFF) return(0);
@@ -446,7 +437,7 @@
 			bool Get_Buck_State(void) {
 
 				// Get Bit
-				bool Stat = Read_Register_Bit(0x00, 7);
+				bool Stat = Read_Register_Bit(BQ24298_Reg::INPUT_SOURCE_CTRL, 7);
 
 				// End Function
 				return(Stat);
@@ -457,7 +448,7 @@
 			bool Get_OTG_State(void) {
 
 				// Get Bit
-				bool Stat = Read_Register_Bit(0x01, 5);
+				bool Stat = Read_Register_Bit(BQ24298_Reg::POWER_ON_CONFIG, 5);
 
 				// End Function
 				return(Stat);
@@ -468,7 +459,7 @@
 			bool Get_BATFET_State(void) {
 
 				// Get Bit
-				bool Stat = Read_Register_Bit(0x07, 5);
+				bool Stat = Read_Register_Bit(BQ24298_Reg::SYSTEM_VBAT_MONITOR, 5);
 
 				// End Function
 				return(Stat);
@@ -482,7 +473,7 @@
 				uint8_t _Status;
 
 				// Read Curent Charge Register
-				uint8_t _Register = Read_Register(0x08);
+				uint8_t _Register = Read_Register(BQ24298_Reg::SYSTEM_STATUS);
 
 				// Handle Data
 				if (bitRead(_Register,7) == 0 and bitRead(_Register,6) == 0) _Status = 0;
@@ -502,7 +493,7 @@
 				uint8_t _Status;
 
 				// Read Curent Charge Register
-				uint8_t _Register = Read_Register(0x08);
+				uint8_t _Register = Read_Register(BQ24298_Reg::SYSTEM_STATUS);
 
 				// Handle Data
 				if (bitRead(_Register,5) == 0 and bitRead(_Register,4) == 0) _Status = 0;
@@ -519,7 +510,7 @@
 			uint8_t Get_Fault_Register(void) {
 
 				// Read Curent Charge Register
-				uint8_t _Fault_Register = Read_Register(0x09);
+				uint8_t _Fault_Register = Read_Register(BQ24298_Reg::FAULT);
 
 				// End Functions
 				return(_Fault_Register);
@@ -530,7 +521,7 @@
 			bool Reset_Watchdog(void) {
 
 				// Set Bit
-				Set_Register_Bit(0x01, 6, true);
+				Set_Register_Bit(BQ24298_Reg::POWER_ON_CONFIG, 6, true);
 
 				// End Function
 				return(true);
@@ -544,12 +535,12 @@
 				if (State) {
 
 					// Set Bit
-					return(Set_Register_Bit(0x00, 7, true));
+					return(Set_Register_Bit(BQ24298_Reg::INPUT_SOURCE_CTRL, 7, true));
 
 				} else {
 
 					// Clear Bit
-					return(Clear_Register_Bit(0x00, 7, true));
+					return(Clear_Register_Bit(BQ24298_Reg::INPUT_SOURCE_CTRL, 7, true));
 
 				}
 
@@ -568,12 +559,12 @@
 				if (State) {
 
 					// Set Bit
-					Stat = Set_Register_Bit(0x01, 5, true);
+					Stat = Set_Register_Bit(BQ24298_Reg::POWER_ON_CONFIG, 5, true);
 
 				} else {
 
 					// Clear Bit
-					Stat = Clear_Register_Bit(0x01, 5, true);
+					Stat = Clear_Register_Bit(BQ24298_Reg::POWER_ON_CONFIG, 5, true);
 
 				}
 
@@ -586,8 +577,8 @@
 			bool Enable_Charge(void) {
 
 				// Set Charge Bits
-				Set_Register_Bit(0x01, 4, true);
-				Set_Register_Bit(0x05, 7, true);
+				Set_Register_Bit(BQ24298_Reg::POWER_ON_CONFIG, 4, true);
+				Set_Register_Bit(BQ24298_Reg::CHARGE_TERM_TIMER_CTRL, 7, true);
 
 				// Enable Bat FET
 				bool _Response = BATFET(false);
@@ -601,7 +592,7 @@
 			bool Disable_Charge(void) {
 
 				// Read Curent Power On Config Register
-				uint8_t _Current_PowerOn_Config_Register = Read_Register(0x01);
+				uint8_t _Current_PowerOn_Config_Register = Read_Register(BQ24298_Reg::POWER_ON_CONFIG);
 
 				// Control for Register Read
 				if (_Current_PowerOn_Config_Register == 0xFF) return(false);
@@ -610,13 +601,13 @@
 				uint8_t _PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0xCF;
 
 				// Write Charge Register
-				Write_Register(0x01, _PowerOn_Config_Register, false);
+				Write_Register(BQ24298_Reg::POWER_ON_CONFIG, _PowerOn_Config_Register, false);
 
 				// Set Charge Termination Bit
-				Clear_Register_Bit(0x05, 7, true);
+				Clear_Register_Bit(BQ24298_Reg::CHARGE_TERM_TIMER_CTRL, 7, true);
 
 				// Read Curent Power On Config Register
-				uint8_t _Current_Misc_Control_Register = Read_Register(0x07);
+				uint8_t _Current_Misc_Control_Register = Read_Register(BQ24298_Reg::SYSTEM_VBAT_MONITOR);
 
 				// Control for Register Read
 				if (_Current_Misc_Control_Register == 0xFF) return(false);
@@ -625,7 +616,7 @@
 				uint8_t _Misc_Control_Register = _Current_Misc_Control_Register & 0xFC;
 
 				// Write Charge Register
-				bool _Response = Write_Register(0x07, _Misc_Control_Register, false);
+				bool _Response = Write_Register(BQ24298_Reg::SYSTEM_VBAT_MONITOR, _Misc_Control_Register, false);
 
 				// End Function
 				return(_Response);
@@ -636,7 +627,7 @@
 			bool Enable_Boost_Mode(void) {
 
 				// Set OTG Config Bit
-				bool Response = Set_Register_Bit(0x01, 5, true); // OTG_CONFIG -> true
+				bool Response = Set_Register_Bit(BQ24298_Reg::POWER_ON_CONFIG, 5, true); // OTG_CONFIG -> true
 
 				// End Function
 				return(Response);
@@ -647,7 +638,7 @@
 			bool Disable_Boost_Mode(void) {
 
 				// Read Curent Misc Control Register
-				uint8_t _Current_Power_On_Control_Register = Read_Register(0x01);
+				uint8_t _Current_Power_On_Control_Register = Read_Register(BQ24298_Reg::POWER_ON_CONFIG);
 
 				// Control for Register Read
 				if (_Current_Power_On_Control_Register == 0xFF) return(false);
@@ -656,7 +647,7 @@
 				uint8_t _Power_On_Control_Register = _Current_Power_On_Control_Register & 0xCF;
 
 				// Write Charge Register
-				bool _Response = Write_Register(0x01, _Power_On_Control_Register | 0x10, false);
+				bool _Response = Write_Register(BQ24298_Reg::POWER_ON_CONFIG, _Power_On_Control_Register | 0x10, false);
 
 				// End Function
 				return(_Response);
@@ -667,7 +658,7 @@
 			bool Enable_Charging(void) {
 
 				// Read Register
-				uint8_t _Current_PowerOn_Config_Register = Read_Register(0x01);
+				uint8_t _Current_PowerOn_Config_Register = Read_Register(BQ24298_Reg::POWER_ON_CONFIG);
 
 				// Set Register
 				bitClear(_Current_PowerOn_Config_Register, 4);
@@ -675,7 +666,7 @@
 				bitSet(_Current_PowerOn_Config_Register, 4);
 
 				// Write Charge Register
-				bool _Response = Write_Register(0x01, _Current_PowerOn_Config_Register, true);
+				bool _Response = Write_Register(BQ24298_Reg::POWER_ON_CONFIG, _Current_PowerOn_Config_Register, true);
 
 				// End Function
 				return(_Response);
@@ -686,7 +677,7 @@
 			bool Disable_Charging(void) {
 
 				// Read Register
-				uint8_t _Current_PowerOn_Config_Register = Read_Register(0x01);
+				uint8_t _Current_PowerOn_Config_Register = Read_Register(BQ24298_Reg::POWER_ON_CONFIG);
 
 				// Control for Register Read
 				if (_Current_PowerOn_Config_Register == 0xFF) return(false);
@@ -695,7 +686,7 @@
 				uint8_t _PowerOn_Config_Register = _Current_PowerOn_Config_Register & 0xCF;
 
 				// Write Charge Register
-				bool _Response = Write_Register(0x01, _PowerOn_Config_Register, false);
+				bool _Response = Write_Register(BQ24298_Reg::POWER_ON_CONFIG, _PowerOn_Config_Register, false);
 
 				// End Function
 				return(_Response);
@@ -706,7 +697,7 @@
 			bool Set_Charge_Current(float _Charge_Current) {
 
 				// Read Curent Charge Register
-				uint8_t _Charge_Register = I2C_Functions::Read_Register(0x02) & 0b00000011;
+				uint8_t _Charge_Register = Read_Register(BQ24298_Reg::CHARGE_CURRENT_CTRL) & 0b00000011;
 
 				if (_Charge_Current >= 2.048) {_Charge_Register |= 0b10000000; _Charge_Current -= 2.048;}
 				if (_Charge_Current >= 1.024) {_Charge_Register |= 0b01000000; _Charge_Current -= 1.024;}
@@ -716,7 +707,7 @@
 				if (_Charge_Current >= 0.064) {_Charge_Register |= 0b00000100;}
 
 				// Write Charge Register
-				return I2C_Functions::Write_Register(0x02, _Charge_Register, true);
+				return Write_Register(BQ24298_Reg::CHARGE_CURRENT_CTRL, _Charge_Register, true);
 
 			}
 
@@ -724,10 +715,10 @@
 			bool Set_Charge_Voltage(float _Charge_Voltage) {
 
 				// Read Register
-				uint8_t _Current_Register = Read_Register(0x04);
+				uint8_t _Current_Register = Read_Register(BQ24298_Reg::CHARGE_VOLTAGE_CTRL);
 
 				// Set Mask
-				uint8_t _Voltage_Register = _Current_Register & 0x03;
+				uint8_t _Voltage_Register = _Current_Register & 0b00000011;
 
 				// Set Voltage Register
 				float _Voltage = _Charge_Voltage - 3.504;
@@ -739,7 +730,7 @@
 				if (_Voltage >= 0.016) {_Voltage_Register |= 0b00000100;}
 
 				// Write Voltage Register
-				bool _Response = Write_Register(0x04, _Voltage_Register, true);
+				bool _Response = Write_Register(BQ24298_Reg::CHARGE_VOLTAGE_CTRL, _Voltage_Register, true);
 
 				// End Functions
 				return(_Response);
@@ -750,7 +741,7 @@
 			bool Set_Input_Current_Limit(float _Input_Current) {
 
 				// Read Curent Charge Register
-				uint8_t _Input_Source_Register = Read_Register(0x00) & 0b11111000;
+				uint8_t _Input_Source_Register = Read_Register(BQ24298_Reg::INPUT_SOURCE_CTRL) & 0b11111000;
 
 				// Set Current Value
 				if (_Input_Current == 0.100) _Input_Source_Register |= 0b00000000;
@@ -763,7 +754,7 @@
 				if (_Input_Current == 3.000) _Input_Source_Register |= 0b00000111;
 
 				// Write Voltage Register
-				bool _Response = Write_Register(0x00, _Input_Source_Register, true);
+				bool _Response = Write_Register(BQ24298_Reg::INPUT_SOURCE_CTRL, _Input_Source_Register, true);
 
 				// End Functions
 				return(_Response);
@@ -774,7 +765,7 @@
 			bool Set_Input_Voltage_Limit(float _Input_Voltage) {
 
 				// Read Curent Charge Register
-				uint8_t _Input_Source_Register = Read_Register(0x00) & 0b10000111;
+				uint8_t _Input_Source_Register = Read_Register(BQ24298_Reg::INPUT_SOURCE_CTRL) & 0b10000111;
 
 				// Set Voltage Register
 				float _Voltage = _Input_Voltage - 3.880;
@@ -784,7 +775,7 @@
 				if (_Voltage >= 0.080) {_Input_Source_Register |= 0b00001000;}
 				
 				// Write Voltage Register
-				bool _Response = Write_Register(0x00, _Input_Source_Register, true);
+				bool _Response = Write_Register(BQ24298_Reg::INPUT_SOURCE_CTRL, _Input_Source_Register, true);
 
 				// End Functions
 				return(_Response);
@@ -795,7 +786,7 @@
 			bool Set_Minimum_System_Voltage(float _Minimum_Voltage) {
 
 				// Read Register
-				uint8_t _Current_Register = Read_Register(0x01) & 0b11110001;
+				uint8_t _Current_Register = Read_Register(BQ24298_Reg::POWER_ON_CONFIG) & 0b11110001;
 
 				// Set Voltage Register
 				float _Voltage = _Minimum_Voltage - 3.00;
@@ -804,7 +795,7 @@
 				if (_Voltage >= 0.1) {_Current_Register |= 0b00000010;}
 
 				// Write Voltage Register
-				bool _Response = Write_Register(0x01, _Current_Register, true);
+				bool _Response = Write_Register(BQ24298_Reg::POWER_ON_CONFIG, _Current_Register, true);
 
 				// End Functions
 				return(_Response);
@@ -815,7 +806,7 @@
 			bool Set_Boost_Voltage(float _Boost_Voltage) {
 
 				// Read Register
-				uint8_t _Register = Read_Register(0x06) & 0b00001111;
+				uint8_t _Register = Read_Register(BQ24298_Reg::MISC_OPERATION_CTRL) & 0b00001111;
 
 				// Set Voltage Register
 				float _Voltage = _Boost_Voltage - 4.55;
@@ -825,7 +816,7 @@
 				if (_Voltage >= 0.064) {_Register |= 0b00010000;}
 
 				// Write Voltage Register
-				bool _Response = Write_Register(0x06, _Register, true);
+				bool _Response = Write_Register(BQ24298_Reg::MISC_OPERATION_CTRL, _Register, true);
 
 				// End Functions
 				return(_Response);
@@ -836,7 +827,7 @@
 			bool Set_PreCharge_Current(float _PreCharge_Current) {
 
 				// Read Curent Charge Register
-				uint8_t _Current_PreCharge_Current_Control_Register = Read_Register(0x03) & 0b00001111;
+				uint8_t _Current_PreCharge_Current_Control_Register = Read_Register(BQ24298_Reg::PRECHARGE_TERM_CURRENT) & 0b00001111;
 
 				// Set Current Value
 				if (_PreCharge_Current == 0.128) _Current_PreCharge_Current_Control_Register |= 0b00010000;
@@ -856,7 +847,7 @@
 				if (_PreCharge_Current == 2.048) _Current_PreCharge_Current_Control_Register |= 0b11110000;
 
 				// Write Charge Register
-				bool _Response = Write_Register(0x03, _Current_PreCharge_Current_Control_Register, true);
+				bool _Response = Write_Register(BQ24298_Reg::PRECHARGE_TERM_CURRENT, _Current_PreCharge_Current_Control_Register, true);
 
 				// End Functions
 				return(_Response);
@@ -867,7 +858,7 @@
 			float Get_PreCharge_Current(void) {
 
 				// Read Curent Charge Register
-				uint8_t _Current_PreCharge_Current_Control_Register = Read_Register(0x03);
+				uint8_t _Current_PreCharge_Current_Control_Register = Read_Register(BQ24298_Reg::PRECHARGE_TERM_CURRENT);
 
 				// Control for Register Read
 				if (_Current_PreCharge_Current_Control_Register == 0xFF) return(NAN);
@@ -887,7 +878,7 @@
 			bool Set_TermCharge_Current(float _Term_Charge_Current) {
 
 				// Read Curent Charge Register
-				uint8_t _Current_Data = Read_Register(0x03) & 0b11111000;
+				uint8_t _Current_Data = Read_Register(BQ24298_Reg::PRECHARGE_TERM_CURRENT) & 0b11111000;
 
 				// Set Current Register
 				float _Current = _Term_Charge_Current - 0.128;
@@ -896,7 +887,7 @@
 				if (_Current >= 0.128) {_Current_Data |= 0b00000001;}
 
 				// Write Charge Register
-				bool _Response = Write_Register(0x03, _Current_Data, true);
+				bool _Response = Write_Register(BQ24298_Reg::PRECHARGE_TERM_CURRENT, _Current_Data, true);
 
 				// End Functions
 				return(_Response);
@@ -907,7 +898,7 @@
 			bool Set_Thermal_Regulation_Temperature(uint8_t _Temperature) {
 
 				// Read Curent Charge Register
-				uint8_t _Current_Data = Read_Register(0x06);
+				uint8_t _Current_Data = Read_Register(BQ24298_Reg::MISC_OPERATION_CTRL);
 
 				// Control for Register Read
 				if (_Current_Data == 0xFF) return(false);
@@ -919,7 +910,7 @@
 				uint8_t _Data = (BQ_Round(((_Temperature - 60) / 20)) & 0x03) | _Mask;
 
 				// Write Charge Register
-				bool _Response = Write_Register(0x06, _Data, false);
+				bool _Response = Write_Register(BQ24298_Reg::MISC_OPERATION_CTRL, _Data, false);
 
 				// End Functions
 				return(_Response);
@@ -932,8 +923,8 @@
 				// Declare Variable
 				bool _Response = false;
 
-				if (!State) _Response = Clear_Register_Bit(0x07, 5, true);
-				if (State) _Response = Set_Register_Bit(0x07, 5, true);
+				if (!State) _Response = Clear_Register_Bit(BQ24298_Reg::SYSTEM_VBAT_MONITOR, 5, true);
+				if (State) _Response = Set_Register_Bit(BQ24298_Reg::SYSTEM_VBAT_MONITOR, 5, true);
 
 				// End Function
 				return(_Response);
@@ -944,7 +935,7 @@
 			bool Disable_DPDM() {
 
 				// Set BatFet Bit
-				Clear_Register_Bit(0x07, 7, true);
+				Clear_Register_Bit(BQ24298_Reg::SYSTEM_VBAT_MONITOR, 7, true);
 
 				// End Function
 				return(true);
@@ -955,7 +946,7 @@
 			bool Enable_DPDM() {
 
 				// Set BatFet Bit
-				Set_Register_Bit(0x07, 7, true);
+				Set_Register_Bit(BQ24298_Reg::SYSTEM_VBAT_MONITOR, 7, true);
 
 				// End Function
 				return(true);
@@ -966,7 +957,7 @@
 			bool Enable_BatFault_INT(){
 
 				// Set BatFet Bit
-				Set_Register_Bit(0x07, 0, true);
+				Set_Register_Bit(BQ24298_Reg::SYSTEM_VBAT_MONITOR, 0, true);
 
 				// End Function
 				return(true);
@@ -977,7 +968,7 @@
 			bool Disable_BatFault_INT() {
 
 				// Set BatFet Bit
-				Clear_Register_Bit(0x07, 0, true);
+				Clear_Register_Bit(BQ24298_Reg::SYSTEM_VBAT_MONITOR, 0, true);
 
 				// End Function
 				return(true);
@@ -994,7 +985,7 @@
 				if (_State == true) {
 
 					// Set Bit
-					_Response = Set_Register_Bit(0x07, 1, true);
+					_Response = Set_Register_Bit(BQ24298_Reg::SYSTEM_VBAT_MONITOR, 1, true);
 
 				}
 				
@@ -1002,7 +993,7 @@
 				if (_State == false) {
 
 					// Clear Bit
-					_Response = Clear_Register_Bit(0x07, 1, true);
+					_Response = Clear_Register_Bit(BQ24298_Reg::SYSTEM_VBAT_MONITOR, 1, true);
 
 				}
 
@@ -1016,7 +1007,7 @@
 			uint8_t Get_Charge_Fault(void) {
 
 				// Read Curent Charge Register
-				uint8_t _Current_Fault_Register = Read_Register(0x09);
+				uint8_t _Current_Fault_Register = Read_Register(BQ24298_Reg::FAULT);
 
 				// Set Data
 				uint8_t _Fault_Register = _Current_Fault_Register & 0x30;
@@ -1030,13 +1021,13 @@
 			bool Set_Watchdog(uint8_t _Timer) {
 
 				// Read Curent Charge Register
-				uint8_t _Current_Register = Read_Register(0x05) & 0b11001111;
+				uint8_t _Current_Register = Read_Register(BQ24298_Reg::CHARGE_TERM_TIMER_CTRL) & 0b11001111;
 
 				// Handle Timer
 				if (_Timer == 1) { // 40 sn
 
 					// Write Voltage Register
-					bool _Response = Write_Register(0x05, (_Current_Register | 0b00010000), true);
+					bool _Response = Write_Register(BQ24298_Reg::CHARGE_TERM_TIMER_CTRL, (_Current_Register | 0b00010000), true);
 
 					// End Functions
 					return(_Response);
@@ -1044,7 +1035,7 @@
 				} else if (_Timer == 2) { // 80 sn
 
 					// Write Voltage Register
-					bool _Response = Write_Register(0x05, (_Current_Register | 0b00100000), true);
+					bool _Response = Write_Register(BQ24298_Reg::CHARGE_TERM_TIMER_CTRL, (_Current_Register | 0b00100000), true);
 
 					// End Functions
 					return(_Response);
@@ -1052,7 +1043,7 @@
 				} else if (_Timer == 3) { // 160 sn
 
 					// Write Voltage Register
-					bool _Response = Write_Register(0x05, (_Current_Register | 0b00110000), true);
+					bool _Response = Write_Register(BQ24298_Reg::CHARGE_TERM_TIMER_CTRL, (_Current_Register | 0b00110000), true);
 
 					// End Functions
 					return(_Response);
@@ -1071,13 +1062,13 @@
 				uint8_t _Register;
 
 				// Read Curent Charge Register
-				uint8_t _Current_Register = Read_Register(0x06);
+				uint8_t _Current_Register = Read_Register(BQ24298_Reg::MISC_OPERATION_CTRL);
 
 				// Handle Timer
 				_Register = _Current_Register | 0b00001111;
 
 				// Write Voltage Register
-				bool _Response = Write_Register(0x06, _Register, true);
+				bool _Response = Write_Register(BQ24298_Reg::MISC_OPERATION_CTRL, _Register, true);
 
 				// End Functions
 				return(_Response);

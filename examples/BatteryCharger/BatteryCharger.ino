@@ -27,7 +27,7 @@ void loop() {
 	Serial.print(F("System Voltage Stat : ")); if (Charger.VSYS_STAT()) {Serial.println(F("BAT < VSYSMIN")); } else {Serial.println(F("BAT > VSYSMIN"));};
 	Serial.print(F("Bat LowV            : ")); if (Charger.BATLOWV()) {Serial.println(F("3V0")); } else {Serial.println(F("2V8"));};
 	Serial.print(F("Bat Cold            : ")); if (Charger.BCOLD()) {Serial.println(F("BCold True")); } else {Serial.println(F("Normal"));};
-	Serial.print(F("NTC Fault           : ")); if (Charger.BCOLD()) {Serial.println(F("Fault")); } else {Serial.println(F("Normal"));};
+	Serial.print(F("NTC Fault           : ")); if (Charger.NTC_FAULT()) {Serial.println(F("Fault")); } else {Serial.println(F("Normal"));};
 	Serial.print(F("Input Voltage Stat  : ")); 
 	switch (Charger.VBUS_STAT()) {
 	case 1:
